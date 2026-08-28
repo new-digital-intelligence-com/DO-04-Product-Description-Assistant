@@ -117,7 +117,7 @@ wet rock" is grounded — the fact is the attribute, the benefit is what that fa
 "Engineered for the most demanding conditions" is grounded in nothing. Short sentences.
 Say the number. Do not sell twice.
 
-## Locale variants
+## Locale Variants
 
 English is the master. A locale variant is a translation of an approved English
 description — it is never written from scratch in the target language, because the
