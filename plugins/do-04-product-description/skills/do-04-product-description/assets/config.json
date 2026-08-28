@@ -1,0 +1,364 @@
+{
+  "categories": {
+    "footwear": {
+      "required": [
+        "brand",
+        "product_type",
+        "gender",
+        "color",
+        "material_upper",
+        "sole_material"
+      ],
+      "optional": [
+        "closure",
+        "size_range",
+        "weight_g",
+        "care_instructions"
+      ]
+    },
+    "outerwear": {
+      "required": [
+        "brand",
+        "product_type",
+        "gender",
+        "color",
+        "material_shell"
+      ],
+      "optional": [
+        "material_lining",
+        "closure",
+        "fit",
+        "size_range",
+        "weight_g",
+        "care_instructions"
+      ]
+    },
+    "accessories": {
+      "required": [
+        "brand",
+        "product_type",
+        "color",
+        "material"
+      ],
+      "optional": [
+        "dimensions",
+        "capacity_l",
+        "weight_g",
+        "care_instructions"
+      ]
+    }
+  },
+  "limits": {
+    "title": 70,
+    "meta_description": 160,
+    "bullet": 140,
+    "bullets_count": 5,
+    "long_copy": 1500
+  },
+  "regulated_terms": {
+    "waterproof": [
+      "waterproof_rating",
+      "membrane"
+    ],
+    "water-resistant": [
+      "waterproof_rating",
+      "membrane"
+    ],
+    "windproof": [
+      "membrane"
+    ],
+    "breathable": [
+      "membrane"
+    ],
+    "gore-tex": [
+      "membrane"
+    ],
+    "organic": [
+      "certification"
+    ],
+    "recycled": [
+      "certification",
+      "material_upper",
+      "material_shell",
+      "material"
+    ],
+    "sustainable": [
+      "certification"
+    ],
+    "responsibly sourced": [
+      "certification"
+    ],
+    "vegan": [
+      "certification"
+    ],
+    "antibacterial": [
+      "certification"
+    ],
+    "hypoallergenic": [
+      "certification"
+    ],
+    "orthopedic": [
+      "certification"
+    ]
+  },
+  "banned_words": [
+    "best in the world",
+    "world's best",
+    "guaranteed",
+    "miracle",
+    "cures",
+    "100% satisfaction",
+    "lifetime warranty",
+    "cheapest",
+    "unbeatable",
+    "risk-free",
+    "indestructible",
+    "bulletproof"
+  ],
+  "keyword_plan": {
+    "footwear": {
+      "primary": "waterproof hiking boots",
+      "secondary": [
+        "gore-tex hiking boots",
+        "leather walking boots",
+        "vibram sole boots",
+        "lightweight trail running shoes"
+      ]
+    },
+    "outerwear": {
+      "primary": "waterproof rain jacket",
+      "secondary": [
+        "gore-tex jacket",
+        "down gilet",
+        "recycled fleece jacket",
+        "softshell jacket"
+      ]
+    },
+    "accessories": {
+      "primary": "recycled daypack",
+      "secondary": [
+        "merino wool beanie",
+        "leather gloves",
+        "lambswool scarf",
+        "organic cotton cap"
+      ]
+    }
+  },
+  "regulated_terms_by_locale": {
+    "de": {
+      "wasserdicht": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "wasserabweisend": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "winddicht": [
+        "membrane"
+      ],
+      "atmungsaktiv": [
+        "membrane"
+      ],
+      "gore-tex": [
+        "membrane"
+      ],
+      "bio": [
+        "certification"
+      ],
+      "recycelt": [
+        "certification",
+        "material_upper",
+        "material_shell",
+        "material"
+      ],
+      "nachhaltig": [
+        "certification"
+      ],
+      "vegan": [
+        "certification"
+      ],
+      "antibakteriell": [
+        "certification"
+      ],
+      "hypoallergen": [
+        "certification"
+      ],
+      "orthopädisch": [
+        "certification"
+      ]
+    },
+    "fr": {
+      "imperméable": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "déperlant": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "coupe-vent": [
+        "membrane"
+      ],
+      "respirant": [
+        "membrane"
+      ],
+      "gore-tex": [
+        "membrane"
+      ],
+      "biologique": [
+        "certification"
+      ],
+      "recyclé": [
+        "certification",
+        "material_upper",
+        "material_shell",
+        "material"
+      ],
+      "durable": [
+        "certification"
+      ],
+      "végan": [
+        "certification"
+      ],
+      "antibactérien": [
+        "certification"
+      ],
+      "hypoallergénique": [
+        "certification"
+      ],
+      "orthopédique": [
+        "certification"
+      ]
+    },
+    "es": {
+      "impermeable": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "resistente al agua": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "cortavientos": [
+        "membrane"
+      ],
+      "transpirable": [
+        "membrane"
+      ],
+      "gore-tex": [
+        "membrane"
+      ],
+      "orgánico": [
+        "certification"
+      ],
+      "reciclado": [
+        "certification",
+        "material_upper",
+        "material_shell",
+        "material"
+      ],
+      "sostenible": [
+        "certification"
+      ],
+      "vegano": [
+        "certification"
+      ],
+      "antibacteriano": [
+        "certification"
+      ],
+      "hipoalergénico": [
+        "certification"
+      ],
+      "ortopédico": [
+        "certification"
+      ]
+    },
+    "it": {
+      "impermeabile": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "idrorepellente": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "antivento": [
+        "membrane"
+      ],
+      "traspirante": [
+        "membrane"
+      ],
+      "gore-tex": [
+        "membrane"
+      ],
+      "biologico": [
+        "certification"
+      ],
+      "riciclato": [
+        "certification",
+        "material_upper",
+        "material_shell",
+        "material"
+      ],
+      "sostenibile": [
+        "certification"
+      ],
+      "vegano": [
+        "certification"
+      ],
+      "antibatterico": [
+        "certification"
+      ],
+      "ipoallergenico": [
+        "certification"
+      ],
+      "ortopedico": [
+        "certification"
+      ]
+    },
+    "nl": {
+      "waterdicht": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "waterafstotend": [
+        "waterproof_rating",
+        "membrane"
+      ],
+      "winddicht": [
+        "membrane"
+      ],
+      "ademend": [
+        "membrane"
+      ],
+      "gore-tex": [
+        "membrane"
+      ],
+      "biologisch": [
+        "certification"
+      ],
+      "gerecycled": [
+        "certification",
+        "material_upper",
+        "material_shell",
+        "material"
+      ],
+      "duurzaam": [
+        "certification"
+      ],
+      "veganistisch": [
+        "certification"
+      ],
+      "antibacterieel": [
+        "certification"
+      ],
+      "hypoallergeen": [
+        "certification"
+      ],
+      "orthopedisch": [
+        "certification"
+      ]
+    }
+  }
+}

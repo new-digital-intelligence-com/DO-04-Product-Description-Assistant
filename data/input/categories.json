@@ -1,0 +1,25 @@
+{
+  "apparel_tops": {
+    "required": [
+      "brand",
+      "product_type",
+      "gender",
+      "color",
+      "material_upper",
+      "sole_material"
+    ],
+    "optional": [
+      "closure",
+      "season",
+      "technology",
+      "fit",
+      "sleeves",
+      "neckline",
+      "graphics",
+      "team_branding",
+      "licensing",
+      "country_of_manufacture",
+      "audience"
+    ]
+  }
+}

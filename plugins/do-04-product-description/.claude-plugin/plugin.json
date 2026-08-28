@@ -1,0 +1,8 @@
+{
+  "name": "do-04-product-description",
+  "displayName": "DO-04 — Product Description Assistant",
+  "description": "NDI's DO-04 AI Employee. Turns one product's raw PIM attributes into a product description — title, bullets, long copy, meta description — with a claims map in which every factual statement traces to a named source attribute; handles regulated terms, banned words, keyword plans and locale variants, and reports which checks did not run.",
+  "author": { "name": "New Digital Intelligence" },
+  "license": "UNLICENSED",
+  "keywords": ["product-description", "ecommerce", "seo", "copywriting", "pim", "ndi", "do-04"]
+}
