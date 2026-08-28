@@ -62,6 +62,12 @@ export function buildPrompt(skill: Skill, category: string, sku: string, attrs: 
     '## Limits',
     `title ≤ ${skill.config.limits.title} chars · meta_description ≤ ${skill.config.limits.meta_description} · each bullet ≤ ${skill.config.limits.bullet} · at most ${skill.config.limits.bullets_count} bullets`,
     '',
-    'Return the JSON object now. No other text.',
+    '## Output mode: JSON',
+    '',
+    'You are being called by a program, not by a person: this response is parsed, never',
+    'read. Return the JSON object described in the skill and no other text — no markdown',
+    'fence, no preamble, no commentary. The conversational format does not apply here.',
+    '',
+    'Return the JSON object now.',
   ].join('\n');
 }
