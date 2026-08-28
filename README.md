@@ -72,10 +72,11 @@ Free-tier DeepL keys end in `:fx` and the client picks the right host automatica
 
 ## The skill is the plugin
 
-The assistant ships as a Claude Code / Cowork plugin, listed in the marketplace at
-`.claude-plugin/marketplace.json`:
+The assistant ships as a Claude Code / Cowork plugin, installable straight from this
+repo through its own marketplace file:
 
 ```
+.claude-plugin/marketplace.json                   marketplace "ndi-do-04", lists the plugin below
 plugins/do-04-product-description/
   .claude-plugin/plugin.json                      plugin manifest
   skills/do-04-product-description/
@@ -84,9 +85,14 @@ plugins/do-04-product-description/
     references/voice-reference.md  the client's own good descriptions — the voice to match
 ```
 
-Add the marketplace with `/plugin marketplace add <repo>` and install
-`do-04-product-description` to get the skill in Claude Code; the web app loads the same
-files from disk, so there is one source of truth.
+```
+/plugin marketplace add new-digital-intelligence-com/DO-04-Product-Description-Assistant
+/plugin install do-04-product-description@ndi-do-04
+```
+
+The web app loads the same files from disk, so there is one source of truth. The plugin is
+also listed in NDI's combined `ndi-ai-employees` marketplace alongside the other AI
+Employees; either route installs the same plugin.
 
 `assets/config.json` drives both the prompt and the checker, so a term added to
 `regulated_terms` is enforced on the next run without touching app code. Swap this skill folder

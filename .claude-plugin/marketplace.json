@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ndi-do-04",
+  "owner": {
+    "name": "New Digital Intelligence",
+    "url": "https://new-digital-intelligence.com"
+  },
+  "description": "NDI's DO-04 AI Employee plugin for Claude Code and Cowork, installable straight from this repo.",
+  "plugins": [
+    {
+      "name": "do-04-product-description",
+      "source": "./plugins/do-04-product-description",
+      "displayName": "DO-04 — Product Description Assistant",
+      "description": "Turns raw PIM product attributes into grounded, SEO-shaped product descriptions — title, bullets, long copy, meta description — where every factual claim traces back to a source attribute, plus locale variants marked as drafts pending native review.",
+      "author": { "name": "New Digital Intelligence" },
+      "category": "content",
+      "keywords": ["product-description", "ecommerce", "seo", "copywriting", "pim", "ndi", "do-04"]
+    }
+  ]
+}
