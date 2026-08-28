@@ -1,10 +1,38 @@
 import { readFile, writeFile, readdir, mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import type { Product, Result, Attributes, LocaleVariant } from './types';
 
-const INPUT = path.join(process.cwd(), 'data', 'input', 'products.csv');
-const CATEGORIES = path.join(process.cwd(), 'data', 'input', 'categories.json');
-const OUTPUT = path.join(process.cwd(), 'data', 'output');
+const BASE_INPUT = path.join(process.cwd(), 'data', 'input', 'products.csv');
+const BASE_CATEGORIES = path.join(process.cwd(), 'data', 'input', 'categories.json');
+const BASE_OUTPUT = path.join(process.cwd(), 'data', 'output');
+
+const TMP_DIR = path.join(os.tmpdir(), 'do04-data');
+const TMP_INPUT = path.join(TMP_DIR, 'input', 'products.csv');
+const TMP_CATEGORIES = path.join(TMP_DIR, 'input', 'categories.json');
+const TMP_OUTPUT = path.join(TMP_DIR, 'output');
+
+async function safeReadFile(primaryPath: string, fallbackPath?: string): Promise<string> {
+  try {
+    return await readFile(primaryPath, 'utf8');
+  } catch (err: any) {
+    if (fallbackPath) {
+      return await readFile(fallbackPath, 'utf8');
+    }
+    throw err;
+  }
+}
+
+async function safeWriteFile(primaryPath: string, fallbackPath: string, content: string): Promise<void> {
+  try {
+    await mkdir(path.dirname(primaryPath), { recursive: true });
+    await writeFile(primaryPath, content, 'utf8');
+  } catch {
+    // If writing to project dir fails (e.g. read-only filesystem on Vercel), write to /tmp
+    await mkdir(path.dirname(fallbackPath), { recursive: true });
+    await writeFile(fallbackPath, content, 'utf8');
+  }
+}
 
 /** Minimal RFC-4180 CSV parser — quoted fields, doubled quotes, embedded commas. */
 function parseCsv(text: string): string[][] {
@@ -27,8 +55,15 @@ function parseCsv(text: string): string[][] {
 const quote = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 
 export async function readProducts(): Promise<Product[]> {
-  const rows = parseCsv(await readFile(INPUT, 'utf8'));
+  let raw = '';
+  try {
+    raw = await safeReadFile(TMP_INPUT, BASE_INPUT);
+  } catch {
+    return [];
+  }
+  const rows = parseCsv(raw);
   const header = rows[0];
+  if (!header) return [];
   return rows.slice(1).map((r) => {
     const rec: Record<string, string> = {};
     header.forEach((h, i) => { rec[h] = (r[i] ?? '').trim(); });
@@ -45,9 +80,14 @@ export async function readProducts(): Promise<Product[]> {
 
 /** Append a user's product to the sample catalogue so successful tests join the set. */
 export async function appendProduct(p: Product): Promise<void> {
-  const raw = await readFile(INPUT, 'utf8');
+  let raw = '';
+  try {
+    raw = await safeReadFile(TMP_INPUT, BASE_INPUT);
+  } catch {
+    raw = 'sku,category,source\n';
+  }
   const rows = parseCsv(raw);
-  const header = rows[0];
+  const header = rows[0] || ['sku', 'category', 'source'];
   const extras = Object.keys(p.attributes).filter((k) => !header.includes(k));
   const newHeader = [...header, ...extras];
 
@@ -60,7 +100,7 @@ export async function appendProduct(p: Product): Promise<void> {
     return line(rec);
   });
   const added = line({ sku: p.sku, category: p.category, source: 'user', ...p.attributes });
-  await writeFile(INPUT, [newHeader.join(','), ...existing, added].join('\n') + '\n', 'utf8');
+  await safeWriteFile(BASE_INPUT, TMP_INPUT, [newHeader.join(','), ...existing, added].join('\n') + '\n');
 }
 
 /** Rewrite one product's attributes in place. The CSV is the record of what is known
@@ -69,7 +109,8 @@ export async function appendProduct(p: Product): Promise<void> {
  *  A key not already a column becomes one; a blank value clears the cell, because an
  *  empty attribute is the absence of a fact rather than a fact that is empty. */
 export async function updateProductAttributes(sku: string, patch: Attributes): Promise<Product> {
-  const rows = parseCsv(await readFile(INPUT, 'utf8'));
+  const raw = await safeReadFile(TMP_INPUT, BASE_INPUT);
+  const rows = parseCsv(raw);
   const header = rows[0];
   const records = rows.slice(1).map((r) => {
     const rec: Record<string, string> = {};
@@ -88,7 +129,7 @@ export async function updateProductAttributes(sku: string, patch: Attributes): P
   }
 
   const lines = records.map((rec) => newHeader.map((h) => quote(rec[h] ?? '')).join(','));
-  await writeFile(INPUT, [newHeader.join(','), ...lines].join('\n') + '\n', 'utf8');
+  await safeWriteFile(BASE_INPUT, TMP_INPUT, [newHeader.join(','), ...lines].join('\n') + '\n');
 
   const attributes: Attributes = {};
   for (const [k, v] of Object.entries(target)) {
@@ -109,7 +150,7 @@ export type CategorySpec = { required: string[]; optional: string[] };
  *  config stays untouched — a client's schema is not ours to rewrite from a test form. */
 export async function readCategoryOverlay(): Promise<Record<string, CategorySpec>> {
   try {
-    const raw = JSON.parse(await readFile(CATEGORIES, 'utf8'));
+    const raw = JSON.parse(await safeReadFile(TMP_CATEGORIES, BASE_CATEGORIES));
     const out: Record<string, CategorySpec> = {};
     for (const [k, v] of Object.entries(raw ?? {})) {
       const spec = v as Partial<CategorySpec>;
@@ -127,8 +168,7 @@ export async function readCategoryOverlay(): Promise<Record<string, CategorySpec
 export async function addCategoryOverlay(name: string, spec: CategorySpec): Promise<void> {
   const all = await readCategoryOverlay();
   all[name] = { required: [...new Set(spec.required)], optional: [...new Set(spec.optional)] };
-  await mkdir(path.dirname(CATEGORIES), { recursive: true });
-  await writeFile(CATEGORIES, JSON.stringify(all, null, 2) + '\n', 'utf8');
+  await safeWriteFile(BASE_CATEGORIES, TMP_CATEGORIES, JSON.stringify(all, null, 2) + '\n');
 }
 
 /** One product, one file: <sku>.json holds the English master and every locale variant
@@ -146,7 +186,6 @@ const samePath = (a: Result['copy'], b: Result['copy']) =>
  *  master leaves them describing copy that no longer exists, so each is marked stale
  *  rather than quietly presented as current. */
 export async function writeResult(r: Result): Promise<void> {
-  await mkdir(OUTPUT, { recursive: true });
   const prev = await readResult(r.sku);
   // Union, not either-or: a caller holding a Result it read before a translation landed
   // would otherwise delete that translation just by saving the master again.
@@ -159,7 +198,11 @@ export async function writeResult(r: Result): Promise<void> {
     );
   }
   const next: Result = { ...r, ...(locales && Object.keys(locales).length ? { locales } : {}) };
-  await writeFile(path.join(OUTPUT, resultFile(r.sku)), JSON.stringify(next, null, 2), 'utf8');
+  await safeWriteFile(
+    path.join(BASE_OUTPUT, resultFile(r.sku)),
+    path.join(TMP_OUTPUT, resultFile(r.sku)),
+    JSON.stringify(next, null, 2),
+  );
 }
 
 /** Add or replace one locale variant inside its product's file. */
@@ -170,25 +213,31 @@ export async function writeLocale(sku: string, variant: LocaleVariant): Promise<
     ...master,
     locales: { ...(master.locales ?? {}), [variant.locale]: variant },
   };
-  await mkdir(OUTPUT, { recursive: true });
-  await writeFile(path.join(OUTPUT, resultFile(sku)), JSON.stringify(next, null, 2), 'utf8');
+  await safeWriteFile(
+    path.join(BASE_OUTPUT, resultFile(sku)),
+    path.join(TMP_OUTPUT, resultFile(sku)),
+    JSON.stringify(next, null, 2),
+  );
   return next;
 }
 
 export async function readResult(sku: string): Promise<Result | null> {
-  try { return JSON.parse(await readFile(path.join(OUTPUT, resultFile(sku)), 'utf8')); }
-  catch { return null; }
+  try {
+    return JSON.parse(await safeReadFile(path.join(TMP_OUTPUT, resultFile(sku)), path.join(BASE_OUTPUT, resultFile(sku))));
+  } catch {
+    return null;
+  }
 }
 
 /** Fold a pre-split <sku>.<locale>.json written by an earlier version into its master,
  *  then remove it. Done on read so an existing output folder is not left half in one
  *  layout and half in the other; the variant itself is preserved, only relocated. */
-async function migrateSplitFile(file: string, byKey: Map<string, Result>): Promise<void> {
+async function migrateSplitFile(file: string, baseDir: string, byKey: Map<string, Result>): Promise<void> {
   const [sku, locale] = file.replace(/\.json$/, '').split('.');
   const master = byKey.get(sku);
   if (!master || !locale) return;
   let old: any;
-  try { old = JSON.parse(await readFile(path.join(OUTPUT, file), 'utf8')); } catch { return; }
+  try { old = JSON.parse(await readFile(path.join(baseDir, file), 'utf8')); } catch { return; }
   if (!old?.copy) return;
   master.locales = {
     ...(master.locales ?? {}),
@@ -204,24 +253,38 @@ async function migrateSplitFile(file: string, byKey: Map<string, Result>): Promi
       ...(old.stale ? { stale: true } : {}),
     },
   };
-  await writeFile(path.join(OUTPUT, resultFile(sku)), JSON.stringify(master, null, 2), 'utf8');
-  await unlink(path.join(OUTPUT, file)).catch(() => { /* leave it if it cannot be removed */ });
+  await safeWriteFile(
+    path.join(BASE_OUTPUT, resultFile(sku)),
+    path.join(TMP_OUTPUT, resultFile(sku)),
+    JSON.stringify(master, null, 2),
+  );
+  await unlink(path.join(baseDir, file)).catch(() => { /* leave it if it cannot be removed */ });
 }
 
 export async function readResults(): Promise<Result[]> {
-  await mkdir(OUTPUT, { recursive: true });
-  const files = (await readdir(OUTPUT)).filter((f) => f.endsWith('.json'));
-  const masters = files.filter((f) => f.split('.').length === 2);
-  const split = files.filter((f) => f.split('.').length > 2);
-
   const byKey = new Map<string, Result>();
-  for (const f of masters) {
+
+  const loadFromDir = async (dirPath: string) => {
+    let files: string[] = [];
     try {
-      const r = JSON.parse(await readFile(path.join(OUTPUT, f), 'utf8')) as Result;
-      if (r?.sku) byKey.set(r.sku, r);
-    } catch { /* skip unreadable */ }
-  }
-  for (const f of split) await migrateSplitFile(f, byKey);
+      files = (await readdir(dirPath)).filter((f) => f.endsWith('.json'));
+    } catch {
+      return;
+    }
+    const masters = files.filter((f) => f.split('.').length === 2);
+    const split = files.filter((f) => f.split('.').length > 2);
+
+    for (const f of masters) {
+      try {
+        const r = JSON.parse(await readFile(path.join(dirPath, f), 'utf8')) as Result;
+        if (r?.sku) byKey.set(r.sku, r);
+      } catch { /* skip unreadable */ }
+    }
+    for (const f of split) await migrateSplitFile(f, dirPath, byKey);
+  };
+
+  await loadFromDir(BASE_OUTPUT);
+  await loadFromDir(TMP_OUTPUT);
 
   return [...byKey.values()].sort((a, b) => a.sku.localeCompare(b.sku));
 }
