@@ -103,3 +103,4 @@ for a client's own and the app is theirs.
 Not connected to a PIM, a commerce platform, or a DAM. Files in, files out. The field
 mapping to a real store is a separate step — see the DO-04 PoC pipeline for the Shopify
 export and the readout.
+
