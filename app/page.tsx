@@ -102,6 +102,10 @@ export default function Page() {
   const ready = cat.products.filter((p) => !p.held.length);
   const heldBack = cat.products.filter((p) => p.held.length);
   const done = new Set(cat.results.map((r) => r.sku));
+  // The bulk action covers only what the output folder does not already hold. Rewriting a
+  // description that passed is a paid call that replaces a reviewed result with a
+  // different one, so it is a deliberate act, not the default button.
+  const pending = ready.filter((p) => !done.has(p.sku));
   const passed = cat.results.filter((r) => r.status === 'PASS').length;
   const variantCount = cat.results.reduce((n, r) => n + Object.keys(r.locales ?? {}).length, 0);
 
@@ -159,9 +163,31 @@ export default function Page() {
             ))}
           </div>
           <div className={styles.actions}>
-            <button className="primary" disabled={busy} onClick={() => run({})}>
-              {busy ? 'Working…' : `Generate all ${ready.length} ready products`}
+            <button
+              className="primary"
+              disabled={busy || !pending.length}
+              onClick={() => run({ skus: pending.map((p) => p.sku) })}
+            >
+              {busy
+                ? 'Working…'
+                : pending.length
+                  ? `Generate ${pending.length} not yet written`
+                  : 'Nothing left to generate'}
             </button>
+            {!busy && !pending.length && ready.length > 0 && (
+              <span className={styles.muted}>
+                all {ready.length} ready product(s) are already in the output folder
+              </span>
+            )}
+            {ready.length > pending.length && (
+              <button
+                disabled={busy}
+                title="Rewrites descriptions that already exist, replacing them"
+                onClick={() => run({ skus: ready.map((p) => p.sku) })}
+              >
+                Regenerate all {ready.length}
+              </button>
+            )}
           </div>
           {heldBack.length > 0 && (
             <div className={styles.heldBox}>
