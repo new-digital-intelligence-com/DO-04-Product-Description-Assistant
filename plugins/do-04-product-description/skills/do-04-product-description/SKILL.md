@@ -124,7 +124,7 @@ description — it is never written from scratch in the target language, because
 grounding work has already been done once and doing it twice invites two different
 answers from one record.
 
-Three rules travel with a translation:
+Three rules travel with a translation :
 
 1. **The claims map is not translated.** Traceability points at the product record, and
    a record has no language. A claim label translated in isolation also comes back worded
