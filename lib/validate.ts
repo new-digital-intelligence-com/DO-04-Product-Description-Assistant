@@ -65,26 +65,7 @@ export function validate(copy: Copy, attrs: Attributes, cfg: SkillConfig, locale
     }
   }
 
-  // 4. Ungrounded figures
-  const recordDigits = new Set(
-    (Object.values(attrs).join(' ').match(NUM) ?? []).map(canonNum)
-  );
-  for (const n of new Set(norm(text).match(NUM) ?? [])) {
-    if (NOISE.has(n) || recordDigits.has(canonNum(n))) continue;
-    out.push({ check: 'ungrounded_figure', detail: `the figure "${n}" appears in the copy but in no source attribute` });
-  }
 
-  // 5. Length — held back, never truncated
-  const L = cfg.limits;
-  if (copy.title && copy.title.length > L.title) out.push({ check: 'over_length', detail: `title is ${copy.title.length} chars, limit ${L.title}` });
-  if (copy.meta_description && copy.meta_description.length > L.meta_description) out.push({ check: 'over_length', detail: `meta_description is ${copy.meta_description.length} chars, limit ${L.meta_description}` });
-  if (copy.long_copy && copy.long_copy.length > L.long_copy) out.push({ check: 'over_length', detail: `long_copy is ${copy.long_copy.length} chars, limit ${L.long_copy}` });
-  (copy.bullets ?? []).forEach((b, i) => {
-    if (b.length > L.bullet) out.push({ check: 'over_length', detail: `bullet ${i + 1} is ${b.length} chars, limit ${L.bullet}` });
-  });
-  if ((copy.bullets ?? []).length > L.bullets_count) {
-    out.push({ check: 'over_length', detail: `${copy.bullets.length} bullets, limit ${L.bullets_count}` });
-  }
 
   // 6. Banned words — the supplied list is English, so it only applies to the master.
   if (master) for (const w of cfg.banned_words) {

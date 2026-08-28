@@ -43,5 +43,29 @@
       "voltage_protection"
     ],
     "optional": []
+  },
+  "electronics_smart_glasses": {
+    "required": [
+      "brand",
+      "product_type",
+      "gender",
+      "color",
+      "material_upper",
+      "size",
+      "weight",
+      "camera",
+      "photo_resolution",
+      "video_resolution",
+      "audio",
+      "microphones",
+      "battery_life",
+      "charging_case",
+      "storage",
+      "storage_capacity",
+      "connectivity",
+      "waterproof_rating",
+      "smart_features"
+    ],
+    "optional": []
   }
 }
