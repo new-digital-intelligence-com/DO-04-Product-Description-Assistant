@@ -28,9 +28,40 @@ export default function Page() {
   const logRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
-    const r = await fetch('/api/catalog', { cache: 'no-store' });
-    const j = await r.json();
-    if (j.error) setError(j.error); else setCat(j);
+    try {
+      const r = await fetch('/api/catalog', { cache: 'no-store' });
+      const j = await r.json();
+      if (j.error) {
+        setError(j.error);
+      } else {
+        let localResults: Result[] = [];
+        try {
+          const stored = typeof window !== 'undefined' ? localStorage.getItem('do04_results') : null;
+          if (stored) localResults = JSON.parse(stored);
+        } catch {}
+
+        setCat((prev) => {
+          const bySku = new Map<string, Result>();
+          (j.results || []).forEach((res: Result) => bySku.set(res.sku, res));
+          localResults.forEach((res) => bySku.set(res.sku, res));
+          if (prev?.results) {
+            prev.results.forEach((res) => bySku.set(res.sku, res));
+          }
+          const mergedResults = [...bySku.values()].sort((a, b) => a.sku.localeCompare(b.sku));
+          try {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('do04_results', JSON.stringify(mergedResults));
+            }
+          } catch {}
+          return {
+            ...j,
+            results: mergedResults,
+          };
+        });
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to load catalog');
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -78,11 +109,20 @@ export default function Page() {
             // A translation arrives as the whole product record, so showing the language
             // that was just produced is a matter of selecting it, not of adding a card.
             if (e.locale) setLang((l) => ({ ...l, [e.result.sku]: e.locale! }));
-            setCat((c) => c && ({
-              ...c,
-              results: [...c.results.filter((r) => r.sku !== e.result.sku), e.result]
-                .sort((a, b) => a.sku.localeCompare(b.sku)),
-            }));
+            setCat((c) => {
+              if (!c) return c;
+              const nextResults = [...c.results.filter((r) => r.sku !== e.result.sku), e.result]
+                .sort((a, b) => a.sku.localeCompare(b.sku));
+              try {
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('do04_results', JSON.stringify(nextResults));
+                }
+              } catch {}
+              return {
+                ...c,
+                results: nextResults,
+              };
+            });
           } else if (e.type === 'error') {
             setError(e.message);
           }
