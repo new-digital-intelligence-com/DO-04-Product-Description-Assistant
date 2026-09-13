@@ -130,6 +130,29 @@ A description belongs to the **product**, not to whoever happened to generate it
 product and the copy is there, with a tab per language — the next person does not regenerate
 what a colleague already wrote and paid for.
 
+### When local storage runs out
+
+It should not: 25 entries is about **67 KB** against a typical **5 MB** per-origin quota —
+roughly 1,800 entries of headroom. But a private window, blocked site data, or an already-full
+origin can all refuse a write, and failing silently would leave someone believing their log
+was saved.
+
+So a refused write drops the oldest half and retries, up to four times, and says what it did:
+
+```
+Storage was full, so the oldest entries were dropped to make room.
+```
+
+If nothing will fit at all, the panel says that instead — and says the part that matters:
+
+```
+This browser will not store anything, so your activity log is not being kept.
+The descriptions themselves are saved on the products and are not affected.
+```
+
+That is the whole point of the split. The log is a convenience; losing it costs you nothing
+that is not already on the product.
+
 What stays local is the log of what *you* did: one line per description, with the SKU, the
 language, the verdict, the claim count and the model. Click a line and a panel shows the pair
 that matters — **the record as it was at that moment**, and the copy that came back. The

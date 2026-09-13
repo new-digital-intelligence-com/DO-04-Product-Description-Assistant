@@ -507,6 +507,7 @@
     runId: "",
     invented: false,
     editingSku: "",
+    storageNote: "",
   };
 
   const TIER_NOTE = {
@@ -1720,7 +1721,12 @@
     try {
       const raw = localStorage.getItem("do04.history");
       state.history = raw ? JSON.parse(raw) : [];
-    } catch { state.history = []; }
+    } catch {
+      /* The accessor itself throws where site data is blocked — that is not an empty log. */
+      state.history = [];
+      state.storageNote = "This browser is not allowing stored data, so no activity log is kept here. " +
+        "The descriptions themselves are saved on the products.";
+    }
   }
 
   /**
@@ -1751,21 +1757,57 @@
       checksOff: entry.checksOff || [],
     });
     state.history = state.history.slice(0, HISTORY_MAX);
-    try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
-    catch { /* quota or blocked storage — the copy is on the product either way */ }
+    persistHistory();
     if ($("histPanel").open) renderHistory();
+  }
+
+  /**
+   * 25 entries is about 67 KB against a ~5 MB origin quota, so this should never fire.
+   * It can anyway: a browser in private mode, a user who blocked site data, or an origin
+   * already full. Failing silently would leave someone believing their log was saved, so
+   * drop the oldest entries and retry, and say so plainly if even that will not take.
+   */
+  function persistHistory() {
+    state.storageNote = "";
+    let attempt = state.history;
+    for (let i = 0; i < 4; i++) {
+      try {
+        localStorage.setItem("do04.history", JSON.stringify(attempt));
+        if (attempt.length < state.history.length) {
+          state.history = attempt;
+          state.storageNote = "Storage was full, so the oldest entries were dropped to make room.";
+        }
+        return true;
+      } catch {
+        attempt = attempt.slice(0, Math.floor(attempt.length / 2));
+        if (!attempt.length) break;
+      }
+    }
+    /* Nothing would fit. The descriptions themselves are safe on the product either way —
+       this log is the only thing lost, and the panel now says so. */
+    state.storageNote = "This browser will not store anything, so your activity log is not being kept. " +
+      "The descriptions themselves are saved on the products and are not affected.";
+    return false;
   }
 
   function deleteRun(id) {
     state.history = state.history.filter((h) => h.id !== id);
-    try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
-    catch { /* nothing to do */ }
+    persistHistory();
     renderHistory();
   }
 
   function renderHistory() {
     const host = $("histList");
     host.textContent = "";
+
+    if (state.storageNote) {
+      const n = document.createElement("div");
+      n.className = "offnote";
+      n.style.margin = "12px 16px";
+      n.textContent = state.storageNote;
+      host.append(n);
+    }
+
     if (!state.history.length) {
       const p = document.createElement("div");
       p.className = "histempty";
