@@ -186,6 +186,27 @@
   .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: .25 } 50% { opacity: 1 } }
 
+  /* ---- snapshot modal ---- */
+  .modal {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(20, 15, 19, .55);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 5vh 18px; overflow-y: auto;
+  }
+  .modalcard {
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 6px; box-shadow: 0 18px 50px rgba(0,0,0,.3);
+    width: 100%; max-width: 760px;
+  }
+  .modalhead {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 18px 22px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--surface); border-radius: 6px 6px 0 0;
+  }
+  .modalhead h3 { font-size: 17px; margin-bottom: 4px; }
+  .modalhead > div:first-child { flex: 1; min-width: 0; }
+  .modalbody { padding: 18px 22px 26px; }
+
   /* ---- activity log ---- */
   .acts { list-style: none; margin: 6px 0 18px; padding: 0; display: grid; gap: 1px; }
   .acts:empty { display: none; }
@@ -265,8 +286,9 @@
   .histmeta { padding: 0 16px 10px; font-size: 12.5px; color: var(--ink-3); }
   .histlist { border-top: 1px solid var(--line); }
   .actrow {
-    display: grid; grid-template-columns: 52px 1fr auto auto; gap: 3px 12px;
+    display: grid; grid-template-columns: 52px 1fr auto; gap: 3px 12px;
     padding: 10px 16px; border-bottom: 1px solid var(--line); align-items: center;
+    cursor: pointer;
   }
   .actrow:last-child { border-bottom: 0; }
   .actrow:hover { background: var(--surface-2); }
@@ -439,6 +461,19 @@
       </div>
     </div>
   </section>
+
+  <div class="modal hidden" id="snapModal">
+    <div class="modalcard" role="dialog" aria-modal="true" aria-labelledby="snapTitle">
+      <div class="modalhead">
+        <div>
+          <h3 id="snapTitle">Run</h3>
+          <div class="eyebrow" id="snapMeta"></div>
+        </div>
+        <button class="btn sm" id="snapClose">Close</button>
+      </div>
+      <div class="modalbody" id="snapBody"></div>
+    </div>
+  </div>
 
   <details class="hist" id="histPanel">
     <summary>Previous runs</summary>
@@ -860,6 +895,35 @@
       state.busy = false;
       $("runWorking").classList.add("hidden");
     }
+  }
+
+  /**
+   * Translate a product that already has a saved English master, without regenerating it.
+   * Hydrates the run state from what is stored, then reuses the ordinary path — so the
+   * variant is a translation of the approved master, which is what the skill requires.
+   */
+  function translateProduct(p, label) {
+    const en = (p.descriptions || {}).en;
+    if (!en || !en.copy) return;
+    state.product = { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) };
+    state.result = {
+      copy: en.copy, findings: en.findings || [], status: en.status,
+      tier: en.tier || state.tier, applied: en.applied,
+    };
+    state.locales = {};
+    for (const code of Object.keys(p.descriptions || {})) {
+      if (code === "en") continue;
+      const d = p.descriptions[code];
+      state.locales[code] = { copy: d.copy, findings: d.findings || [], checksOff: d.checksOff || [], status: d.status, label: d.label || code };
+    }
+    state.viewing = "en";
+    state.runId = String(Date.now());
+    $("paneRun").classList.remove("hidden");
+    $("runSku").textContent = p.sku + " · " + p.category;
+    $("runResult").classList.remove("hidden");
+    $("runError").classList.add("hidden");
+    renderResult();
+    translateTo(label);
   }
 
   async function translateTo(label) {
@@ -1308,13 +1372,58 @@
     const sp = document.createElement("div"); sp.className = "spacer";
     const go = document.createElement("button");
     go.className = "btn primary";
-    go.textContent = "Get description";
+    go.textContent = codes.length ? "Regenerate description" : "Get description";
     go.disabled = !state.caps.sample;
+    if (codes.length) go.title = "Writes a fresh English master and replaces the saved one.";
     go.addEventListener("click", () => writeFor(
       { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) },
     ));
     act.append(edit, del, sp, go);
     body.append(act);
+
+    /* Translating is only offered once there is an English master to translate FROM —
+       the skill is explicit that a variant is never written from scratch. */
+    if (descs.en && descs.en.copy) {
+      const tr = document.createElement("div");
+      tr.className = "saved";
+      const th = document.createElement("div");
+      th.className = "eyebrow";
+      th.textContent = "Translate";
+      const bar2 = document.createElement("div");
+      bar2.className = "locbar";
+      bar2.style.marginTop = "10px";
+
+      const mk = (code, label, unchecked) => {
+        const b = document.createElement("button");
+        b.className = "locbtn" + (unchecked ? " unchecked" : "");
+        b.textContent = label + (descs[code] ? " ✓" : "");
+        if (unchecked) b.title = "No regulated-term list for this language — that check runs off.";
+        b.disabled = !state.caps.sample;
+        b.addEventListener("click", () => translateProduct(p, label));
+        return b;
+      };
+      for (const code of CHECKED_LOCALES) bar2.append(mk(code, LANG_NAMES[code] || code, false));
+      if (!CHECKED_LOCALES.includes("ar")) bar2.append(mk("ar", LANG_NAMES.ar, true));
+
+      const wrap = document.createElement("span");
+      wrap.className = "langinput";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "any language…";
+      input.setAttribute("aria-label", "Translate into another language");
+      const gob = document.createElement("button");
+      gob.className = "locbtn";
+      gob.textContent = "Translate";
+      gob.disabled = !state.caps.sample;
+      const fire = () => { const v = input.value.trim(); if (v) { input.value = ""; translateProduct(p, v); } };
+      gob.addEventListener("click", fire);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fire(); } });
+      wrap.append(input, gob);
+      bar2.append(wrap);
+
+      tr.append(th, bar2);
+      body.append(tr);
+    }
   }
 
   /* =========================================================== products in db
@@ -1756,12 +1865,20 @@
       category: state.product.category,
       attrs: Object.keys(state.product.attributes).length,
       language: code === "en" ? "English" : (v.label || code),
+      code: code,
       status: v.status,
       findings: (v.findings || []).length,
       claims: (state.result.copy.claims || []).length,
       tier: state.result.tier,
       applied: state.result.applied || state.result.tier,
       id: state.runId + ":" + code,
+      /* The record AS IT WAS. The product can be edited afterwards, and then the copy
+         no longer matches what is on the row — this is the only place that says what it
+         was written from. */
+      snapshot: Object.assign({}, state.product.attributes),
+      copy: v.copy,
+      allFindings: v.findings || [],
+      checksOff: v.checksOff || [],
     });
     state.history = state.history.slice(0, HISTORY_MAX);
     try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
@@ -1810,16 +1927,11 @@
         String(h.at).slice(0, 16).replace("T", " "),
       ].join("  ·  ");
 
-      const open = document.createElement("button");
-      open.className = "btn sm";
-      open.textContent = "Open";
-      open.title = "Show this product in the catalogue";
-      open.addEventListener("click", () => { $("tabCat").click(); openProduct(h.sku); });
-
       const del = document.createElement("button");
       del.className = "btn sm";
       del.textContent = "Delete";
-      del.addEventListener("click", () => {
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
         if (del.dataset.armed !== "1") {
           del.dataset.armed = "1";
           del.textContent = "Click again";
@@ -1829,10 +1941,63 @@
         deleteRun(h.id);
       });
 
-      row.append(s, w, open, del, m);
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
+      row.title = "Show the record and the copy as they were";
+      const open = () => showSnapshot(h);
+      row.addEventListener("click", open);
+      row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+
+      row.append(s, w, del, m);
       host.append(row);
     }
   }
+
+  /* ------------------------------------------------------------- snapshot
+     A run is a pair: the record it was written from, and what came back. The product
+     can be edited afterwards, so this is the only place that still holds the first half. */
+  function showSnapshot(h) {
+    $("snapTitle").textContent = h.sku + " · " + h.language;
+    $("snapMeta").textContent = [
+      h.category,
+      h.status,
+      h.findings ? h.findings + " findings" : "clean",
+      tierLabel(h.tier || "complex", h.applied).replace("model: ", ""),
+      String(h.at).slice(0, 16).replace("T", " "),
+    ].join("  ·  ");
+
+    const body = $("snapBody");
+    body.textContent = "";
+
+    const h4 = document.createElement("h4");
+    h4.style.cssText = "font-size:13.5px;margin:0 0 8px";
+    h4.textContent = "The record at that moment";
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.style.cssText = "color:var(--ink-3);font-size:11.5px;margin-bottom:10px";
+    note.textContent = "What the copy was written from. The product may have been edited since.";
+    const sc = document.createElement("div"); sc.className = "scroll";
+    const tbl = document.createElement("table"); tbl.className = "rec";
+    const tb = document.createElement("tbody");
+    fillRecord(tb, h.snapshot || {});
+    tbl.append(tb); sc.append(tbl);
+    body.append(h4, note, sc);
+
+    const h5 = document.createElement("h4");
+    h5.style.cssText = "font-size:13.5px;margin:22px 0 8px";
+    h5.textContent = "What came back";
+    body.append(h5);
+
+    renderSavedCopy(body, {
+      copy: h.copy, status: h.status, findings: h.allFindings || [],
+      checksOff: h.checksOff || [], tier: h.tier, applied: h.applied, at: h.at,
+    }, h.code || "en", h.snapshot || {});
+
+    $("snapModal").classList.remove("hidden");
+    $("snapClose").focus();
+  }
+
+  function closeSnapshot() { $("snapModal").classList.add("hidden"); }
 
   /* =========================================================== downloads */
   async function offer(filename, data) {
@@ -1984,6 +2149,11 @@
   });
 
   $("histPanel").addEventListener("toggle", () => { if ($("histPanel").open) renderHistory(); });
+  $("snapClose").addEventListener("click", closeSnapshot);
+  $("snapModal").addEventListener("click", (e) => { if (e.target === $("snapModal")) closeSnapshot(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("snapModal").classList.contains("hidden")) closeSnapshot();
+  });
 
   loadTier();
   loadHistory();

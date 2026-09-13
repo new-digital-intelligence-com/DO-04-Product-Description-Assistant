@@ -130,9 +130,22 @@ A description belongs to the **product**, not to whoever happened to generate it
 product and the copy is there, with a tab per language — the next person does not regenerate
 what a colleague already wrote and paid for.
 
-What stays local is only the log of what *you* did: one line per description, with the SKU,
-the language, the verdict, the claim count and the model. No copy — that is on the product.
-Each line has **Open** (jumps to that product) and **Delete**. Capped at 25.
+What stays local is the log of what *you* did: one line per description, with the SKU, the
+language, the verdict, the claim count and the model. Click a line and a panel shows the pair
+that matters — **the record as it was at that moment**, and the copy that came back. The
+product can be edited afterwards, so that snapshot is the only thing that still says what the
+copy was written from. Capped at 25.
+
+## Writing, rewriting, translating
+
+A product with no description offers **Get description**. Once it has one, that becomes
+**Regenerate description**, and a **Translate** row appears under it: German, French, Spanish,
+Italian, Dutch, Arabic, plus a box for any language typed in plain text.
+
+Translating is only offered once an English master exists, because the skill is explicit that
+a variant is a translation of an approved master and is never written from scratch in the
+target language. Translating from a product row reuses the stored master rather than
+regenerating it — the same copy the merchandiser approved.
 
 ## The wait is narrated
 
