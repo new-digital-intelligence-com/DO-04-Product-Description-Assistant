@@ -686,6 +686,36 @@
     ].join("\n");
   }
 
+  /* ------------------------------------------------------------- asking Claude
+     sample.json() parses for you but resolves with the parsed value alone, so
+     `modelTierApplied` — the tier that ACTUALLY answered — is lost. The platform
+     substitutes a cheaper tier when the viewer's plan lacks the one asked for, and
+     without this the copy quietly gets weaker and the skill takes the blame. So: call
+     sample(), keep the envelope, and parse the text here. */
+  function parseJsonReply(text) {
+    let s = String(text || "").trim();
+    const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) s = fence[1].trim();
+    const a = s.indexOf("{"), b = s.lastIndexOf("}");
+    if (a >= 0 && b > a) s = s.slice(a, b + 1);
+    try { return JSON.parse(s); }
+    catch { throw { code: "invalid_json", message: "Claude's reply was not JSON.", text: String(text || "") }; }
+  }
+
+  async function askJson(prompt, opts) {
+    const res = await state.caps.sample(prompt, Object.assign({
+      modelTier: state.tier, cache: false,
+    }, opts || {}));
+    return { data: parseJsonReply(res.text), applied: res.modelTierApplied || state.tier, truncated: !!res.truncated };
+  }
+
+  /** What to show beside the verdict: the tier asked for, and the one that answered. */
+  function tierLabel(asked, applied) {
+    const name = { complex: "most capable", "default": "balanced", quick: "fastest" };
+    if (!applied || applied === asked) return "model: " + (name[asked] || asked);
+    return "model: " + (name[applied] || applied) + " — your plan could not serve " + (name[asked] || asked);
+  }
+
   /* =========================================================== running */
   async function writeFor(product, note) {
     const sample = state.caps.sample;
@@ -715,16 +745,16 @@
     }
 
     try {
-      const copy = await sample.json(prompt, {
-        modelTier: state.tier,
-        cache: false,
+      const r = await askJson(prompt, {
         onText: () => { $("runWorkText").textContent = "Claude is writing the copy…"; },
       });
+      const copy = r.data;
       const findings = validate(copy, product.attributes, "en");
+      if (r.truncated) findings.push({ check: "truncated", detail: "Claude hit the length limit — the copy may stop mid-thought." });
       state.result = {
         copy: copy, findings: findings,
         status: findings.length ? "FAIL" : "PASS",
-        tier: state.tier, note: (note || "").trim(),
+        tier: state.tier, applied: r.applied, note: (note || "").trim(),
       };
       renderResult();
       saveHistory();
@@ -754,10 +784,8 @@
     $("runWorkText").textContent = "Translating into " + name + "…";
 
     try {
-      const t = await sample.json(
-        translatePrompt(state.product, state.result.copy, name, state.result.note),
-        { modelTier: state.tier, cache: false },
-      );
+      const tr = await askJson(translatePrompt(state.product, state.result.copy, name, state.result.note));
+      const t = tr.data;
       /* The claims map travels untranslated, so the variant keeps the master's. */
       const copy = {
         title: t.title, bullets: t.bullets,
@@ -816,7 +844,7 @@
     badge.className = "badge " + (v.status === "PASS" ? "pass" : "fail");
     $("verdictMeta").textContent = [
       v.findings.length ? v.findings.length + " finding" + (v.findings.length === 1 ? "" : "s") : "every check that could run, passed",
-      "model: " + (state.result.tier || "complex"),
+      tierLabel(state.result.tier || "complex", state.result.applied),
       (state.result.copy.claims || []).length + " claims",
     ].join("  ·  ");
 
@@ -1145,10 +1173,10 @@
     btn.textContent = "Inventing…";
 
     try {
-      const r = await sample.json(inventPrompt(p.category), { modelTier: state.tier, cache: false });
-      const attrs = (r && r.attributes) || {};
+      const inv = (await askJson(inventPrompt(p.category))).data;
+      const attrs = (inv && inv.attributes) || {};
 
-      if (r && r.sku) $("ownSku").value = String(r.sku);
+      if (inv && inv.sku) $("ownSku").value = String(inv.sku);
 
       /* Known attribute names land in their own field; the rest become extra rows, so
          nothing Claude thought worth carrying is silently dropped. */
@@ -1322,6 +1350,7 @@
       attributes: state.product.attributes,
       note: state.result.note || "",
       tier: state.result.tier,
+      applied: state.result.applied || state.result.tier,
       status: state.result.status,
       findings: state.result.findings,
       copy: state.result.copy,
@@ -1379,7 +1408,7 @@
         h.sku, h.category,
         String(h.at).slice(0, 16).replace("T", " "),
         (h.copy && h.copy.claims ? h.copy.claims.length : 0) + " claims",
-        h.tier || "complex",
+        tierLabel(h.tier || "complex", h.applied),
         locs.length ? "+ " + locs.map((c) => (h.locales[c].label || c)).join(", ") : "English only",
       ].join("  ·  ");
 

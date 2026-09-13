@@ -198,9 +198,24 @@ There is no way to name a model (`Opus`, `Sonnet`) from an artifact: `modelTier`
 beside the verdict, so a batch written on the fastest tier is identifiable afterwards rather
 than being blamed on the skill.
 
-One limitation: the platform serves a nearby cheaper tier when the viewer's plan lacks the one
-asked for, and reports that on `modelTierApplied` — which `sample.json()` does not return, only
-`sample()` does. So this page shows the tier **requested**, not the one applied.
+### Who pays, and which model actually answered
+
+**The viewer pays.** Every call spends the Claude usage of whoever clicked, from their own
+account — not yours, and not the account that published the page. The first call in a view
+asks them to allow it.
+
+Which model answered is reported on `modelTierApplied`, and the platform substitutes a
+nearby cheaper tier when the viewer's plan lacks the one asked for. `sample.json()` drops
+that — it resolves with the parsed value alone — so the page calls `sample()` and parses the
+JSON itself (`askJson`), keeping the envelope. When the tier was downgraded the verdict line
+says so:
+
+```
+PASS · every check that could run, passed · model: balanced — your plan could not serve most capable · 6 claims
+```
+
+Without that, a viewer on a smaller plan silently gets weaker copy and the skill takes the
+blame. The applied tier is stored with each run, so an old batch can be explained later.
 
 ## Keeping it current
 
