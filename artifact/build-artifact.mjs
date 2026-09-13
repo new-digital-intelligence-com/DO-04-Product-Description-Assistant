@@ -74,9 +74,9 @@ if (skillBytes > budget) {
 
 /* ---------------------------------------------------------------- catalogue
    The sample products travel with the page so it opens on something real rather
-   than an empty form. Blank cells are dropped: an attribute that is absent and an
-   attribute that is empty mean the same thing to the gate, and carrying empties
-   into the prompt invites the model to write around them. */
+   than an empty form. Blank cells are dropped: an attribute that is absent and one that
+   is empty mean the same thing, and carrying empties into the prompt invites the model to
+   write around them. */
 function parseCsv(text) {
   const rows = [];
   let row = [], field = "", quoted = false;
@@ -120,6 +120,19 @@ const checkedLocales = Object.keys(config.regulated_terms_by_locale ?? {});
 /** `</script>` inside embedded JSON would close the tag early. */
 const embed = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
 
+/* Provenance for the masthead: which plugin and which skill this page was built from.
+   A published page is a snapshot, so saying which snapshot is part of saying what it is. */
+let source = { marketplace: "", plugin: "do-04-product-description", skill: "do-04-product-description", displayName: "" };
+try {
+  const pj = JSON.parse(readFileSync(join(root, "plugins", "do-04-product-description", ".claude-plugin", "plugin.json"), "utf8"));
+  source.plugin = pj.name || source.plugin;
+  source.displayName = pj.displayName || "";
+} catch { console.warn("[build-artifact] plugin.json unreadable — masthead falls back to the folder name"); }
+try {
+  const mj = JSON.parse(readFileSync(join(root, ".claude-plugin", "marketplace.json"), "utf8"));
+  source.marketplace = mj.name || "";
+} catch { /* a marketplace name is nice to have, not required */ }
+
 const skillHash = createHash("sha256")
   .update(FILES.map((rel) => rel + "\0" + (skill[rel] ?? "")).join("\0"))
   .digest("hex").slice(0, 8);
@@ -130,9 +143,10 @@ const page = readFileSync(srcFile, "utf8")
   .replace('"__SKILL_FILES__"', embed(skill))
   .replace('"__CATALOGUE__"', embed(catalogue))
   .replace('"__CHECKED_LOCALES__"', embed(checkedLocales))
-  .replace('"__BUILD_STAMP__"', embed(stamp));
+  .replace('"__BUILD_STAMP__"', embed(stamp))
+  .replace('"__SOURCE__"', embed(source));
 
-for (const token of ["__SKILL_FILES__", "__CATALOGUE__", "__CHECKED_LOCALES__", "__BUILD_STAMP__"]) {
+for (const token of ["__SKILL_FILES__", "__CATALOGUE__", "__CHECKED_LOCALES__", "__BUILD_STAMP__", "__SOURCE__"]) {
   if (page.includes(token)) {
     console.error(`[build-artifact] placeholder ${token} was not substituted — check src/console.html`);
     process.exit(1);
@@ -148,7 +162,8 @@ console.log(
     `  catalogue: ${catalogue.length} sample products\n` +
     `  locales:   ${checkedLocales.length} with a regulated-term list (${checkedLocales.join(", ")})\n` +
     `  page:      ${Buffer.byteLength(page, "utf8")} bytes\n` +
-    `  hash:      ${skillHash}`,
+    `  hash:      ${skillHash}`+
+    `\n  source:    ${source.marketplace ? source.marketplace + " / " : ""}${source.plugin} / skills/${source.skill}`,
 );
 
 console.log(

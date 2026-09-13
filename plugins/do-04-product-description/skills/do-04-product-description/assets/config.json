@@ -1,15 +1,13 @@
 {
   "categories": {
     "footwear": {
-      "required": [
+      "attributes": [
         "brand",
         "product_type",
         "gender",
         "color",
         "material_upper",
-        "sole_material"
-      ],
-      "optional": [
+        "sole_material",
         "closure",
         "size_range",
         "weight_g",
@@ -17,14 +15,12 @@
       ]
     },
     "outerwear": {
-      "required": [
+      "attributes": [
         "brand",
         "product_type",
         "gender",
         "color",
-        "material_shell"
-      ],
-      "optional": [
+        "material_shell",
         "material_lining",
         "closure",
         "fit",
@@ -34,13 +30,11 @@
       ]
     },
     "accessories": {
-      "required": [
+      "attributes": [
         "brand",
         "product_type",
         "color",
-        "material"
-      ],
-      "optional": [
+        "material",
         "dimensions",
         "capacity_l",
         "weight_g",

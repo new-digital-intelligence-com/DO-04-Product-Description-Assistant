@@ -86,18 +86,19 @@ Checks ported, in the skill's own vocabulary:
 | `banned_word` | **master only** — the supplied list is English |
 | `over_limit` | every locale |
 
-### Two deliberate differences from the Next.js app
+### Nothing is mandatory any more
 
-**`over_limit` is new.** The app has no length check. The skill's translation rules require one —
-*"text expansion routinely pushes a translated title over a channel's character limit"* — so the
-page flags it and the translation prompt asks for a rewrite in the target language rather than a
-re-translation.
+The gate is gone, on request. `config.json` used to split each category's attributes into
+`required` and `optional`, and a record missing a required one was held. Both lists are now
+one `attributes` list: **what a category usually carries, as a prompt for whoever fills the
+record — not a rule.**
 
-**An unknown category is a warning, not a hold.** `lib/validate.ts` returns `unknown category` from
-`gate()`, which disables Generate in the app. `SKILL.md` says the opposite: *"say so in one line and
-continue… the gate cannot run and keywords come from the record's own attributes."* The skill is the
-source of truth, so the page follows the skill. Three of the bundled sample products are in
-categories the config does not know, and they are writable.
+So: every product is writable, every category is writable, and a thin record simply makes
+short copy. That is the grounding rule working, not a failure — `SKILL.md` says so directly.
+
+`over_limit` is still new relative to the Next.js app: the app has no length check, and the
+skill's translation rules need one, since text expansion is what pushes a translated title
+past a channel limit.
 
 ## Translation without DeepL
 
@@ -146,6 +147,17 @@ plan, which is what `SKILL.md` prescribes.
 
 To make one first-class, add it to `assets/config.json` with its required attributes and its
 keyword plan, then rebuild.
+
+## Fill with Claude
+
+The **Fill with Claude** button on the add-a-product tab invents one plausible record for the
+chosen category — SKU, brand, product type, materials, figures with their units — and drops it
+into the form for you to check and save. Useful for trying the tool without hunting for a real
+PIM row.
+
+An invented record is stored with `invented: true` and tagged **made up** in the catalogue. The
+catalogue is shared, and a fabricated product sitting unlabelled beside real ones is exactly
+the kind of thing someone later reads as a real spec.
 
 ## The note box
 

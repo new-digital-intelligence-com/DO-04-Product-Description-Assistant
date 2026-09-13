@@ -14,19 +14,22 @@ Two files ship beside this one and you are expected to open them, every run:
 
 | File | What it settles |
 |---|---|
-| `assets/config.json` | the category schema (which attributes are mandatory), the length limits, the regulated-term backing map, the banned-word list, the per-category keyword plan |
+| `assets/config.json` | the attributes each category usually carries, the length limits, the regulated-term backing map, the banned-word list, the per-category keyword plan |
 | `references/voice-reference.md` | the house voice — six descriptions the client considers good |
 
 Read them before writing. Announcing that no keyword plan or banned-word list was
 supplied, when both sit in your own skill folder unread, is not an honest disclaimer —
 it is a file you did not open.
 
-**If the category is not in `config.json`** — `computers > laptops` is not, the config
-knows footwear, outerwear and accessories — then say so in one line and continue:
-there is no required-attribute list to gate on and no keyword plan to target, so the
-gate cannot run and keywords come from the record's own attributes. Everything else —
-the grounding rule, the regulated terms, the banned words, the limits, the voice —
-still applies, because none of those are category-specific.
+**No attribute is mandatory, and no category is closed.** The attribute lists in
+`config.json` are what a category usually carries — a prompt for whoever fills the record,
+not a gate. Write from whatever the record has. A thin record makes short copy; that is the
+grounding rule working, not a failure, and it is never a reason to refuse.
+
+**A category the config does not know is fine too.** There is simply no keyword plan for it,
+so keywords come from the record's own attributes. Everything else — the grounding rule, the
+regulated terms, the banned words, the limits, the voice — still applies, because none of
+those are category-specific.
 
 ## How you were invoked decides the shape of your answer
 
@@ -60,8 +63,9 @@ Markdown, in this order, and nothing that is not on this list:
 5. **Claims traced** — a table of every factual statement against the attribute it came
    from. This is the deliverable, not an appendix: it is what makes the copy checkable.
 6. **What did not run** — one short line naming any check that could not apply: a
-   category absent from `config.json`, a language with no regulated-term list, an
-   attribute you were given that is not in the schema. If everything ran, say that.
+   category with no keyword plan, a language with no regulated-term list. If everything
+   ran, say that. Do not list absent attributes here: leaving a subject out because the
+   record is silent on it is the rule working, not a check that failed.
 
 No JSON. No preamble explaining what you are about to do. The limits, the regulated-term
 rules and the banned-word list below apply exactly as they do in JSON mode — the format
