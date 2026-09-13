@@ -148,10 +148,43 @@ plan, which is what `SKILL.md` prescribes.
 To make one first-class, add it to `assets/config.json` with its required attributes and its
 keyword plan, then rebuild.
 
+## Saving to the shared catalogue
+
+Writing copy and *storing a record everyone inherits* are different acts with different
+standards, and the page now treats them that way.
+
+| Saving a product | |
+|---|---|
+| **Known category** | every attribute on the category's list must be filled. Extras welcome, and they stay on the product — they never change the category definition, which lives in the skill |
+| **New category** | no list to be complete against, so at least **3 attributes** |
+
+The skill is untouched by this: it still writes from whatever a record carries, and a thin
+record still makes short copy. This is a rule about the store, not about writing — leaving
+holes in a row your colleagues inherit is how a catalogue rots.
+
+**There is no "Save & get description" any more.** Save first; then write the description from
+the catalogue, against a record that exists. One button, one meaning.
+
+## Editing and deleting
+
+Every product opens to **Edit** and **Delete**. Both need `db`; both are two-click (the button
+arms, then confirms).
+
+Deleting writes a `hidden: true` tombstone rather than only removing a document — the bundled
+products live inside the page and cannot be removed from it, so a marker is the only way for a
+shared catalogue to lose one. Renaming a SKU during an edit tombstones the old one, or the
+rename would leave a duplicate behind.
+
+**The catalogue keeps at least 3 products.** Delete is disabled when it would drop below that,
+so nobody empties a shared catalogue for everyone else in a few clicks.
+
+Previous runs are deletable too — they are yours and local, so that one is unguarded.
+
 ## Fill with Claude
 
 The **Fill with Claude** button on the add-a-product tab invents one plausible record for the
-chosen category — SKU, brand, product type, materials, figures with their units — and drops it
+chosen category. On a brand-new category it reads **Generate new product**, because there is no
+record to fill in — it makes one — SKU, brand, product type, materials, figures with their units — and drops it
 into the form for you to check and save. Useful for trying the tool without hunting for a real
 PIM row.
 

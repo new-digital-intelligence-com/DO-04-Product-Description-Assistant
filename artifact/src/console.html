@@ -243,14 +243,17 @@
   .histlist { border-top: 1px solid var(--line); }
   .hrun { border-bottom: 1px solid var(--line); }
   .hrun:last-child { border-bottom: 0; }
-  .hrunhead { display: grid; grid-template-columns: 1fr auto; gap: 3px 14px; padding: 11px 16px; cursor: pointer; }
+  .hrunhead { display: grid; grid-template-columns: 1fr auto auto; gap: 3px 12px; padding: 11px 16px; cursor: pointer; align-items: start; }
+  .hrunhead .runx { opacity: 0; transition: opacity .12s; }
+  .hrunhead:hover .runx, .hrun[data-open="1"] .runx, .runx:focus-visible { opacity: 1; }
+  .hrunhead .m { grid-column: 1 / -1; }
   .hrunhead:hover { background: var(--surface-2); }
   .hrun[data-open="1"] .hrunhead { background: var(--accent-soft); }
   .hrunhead .t { font: 500 14px/1.4 var(--copy); }
   .hrunhead .s { font: 600 11px/1.5 var(--mono); text-align: right; white-space: nowrap; }
   .hrunhead .s.pass { color: var(--pass); }
   .hrunhead .s.fail { color: var(--fail); }
-  .hrunhead .m { grid-column: 1; font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
+  .hrunhead .m { font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
   .hrunbody { padding: 4px 16px 18px; }
   .histempty { padding: 14px 16px; color: var(--ink-3); font-size: 13px; }
   .hlocs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 8px; }
@@ -321,10 +324,9 @@
   <!-- ---------- add a product ---------- -->
   <section class="panel hidden" id="paneOwn" style="border-radius:0 var(--radius) var(--radius) var(--radius)">
     <header>
-      <h2>Add a product</h2>
-      <p class="lede">Saved to the shared catalogue, so everyone who opens this page finds it.
-        Anything you leave blank stays out of the copy — that is the grounding rule, not a
-        limitation.</p>
+      <h2 id="ownHeading">Add a product</h2>
+      <p class="lede" id="ownLede">Saved to the shared catalogue, so everyone who opens this page
+        finds it. Write the description afterwards, from the catalogue.</p>
     </header>
 
     <div class="fields">
@@ -355,9 +357,9 @@
     <div class="actions">
       <span class="eyebrow" id="ownGate"></span>
       <div class="spacer"></div>
+      <button class="btn hidden" id="ownCancel">Cancel edit</button>
       <button class="btn" id="ownFill">Fill with Claude</button>
-      <button class="btn" id="ownSave">Save to catalogue</button>
-      <button class="btn primary" id="ownGo">Save &amp; get description</button>
+      <button class="btn primary" id="ownSave">Save to catalogue</button>
     </div>
   </section>
 
@@ -484,6 +486,7 @@
     history: [],
     runId: "",
     invented: false,
+    editingSku: "",
   };
 
   const TIER_NOTE = {
@@ -986,7 +989,15 @@
     const bySku = new Map();
     for (const p of CATALOGUE) bySku.set(p.sku, Object.assign({ shared: false }, p));
     for (const p of state.products) bySku.set(p.sku, Object.assign({ shared: true }, p));
-    return [...bySku.values()];
+    return [...bySku.values()].filter((p) => !p.hidden);
+  }
+
+  /** Expand one product in the catalogue, scroll to it. Used after a save. */
+  function openProduct(sku) {
+    const row = $("catList").querySelector('[data-sku="' + CSS.escape(sku) + '"]');
+    if (!row) return;
+    if (row.dataset.open !== "1") row.querySelector(".prodhead").click();
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function renderCatalogue() {
@@ -1006,6 +1017,7 @@
       const row = document.createElement("div");
       row.className = "prod";
       row.dataset.open = "0";
+      row.dataset.sku = p.sku;
 
       const head = document.createElement("div");
       head.className = "prodhead";
@@ -1074,6 +1086,30 @@
 
     const act = document.createElement("div");
     act.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.className = "btn sm";
+    edit.textContent = "Edit";
+    edit.disabled = !state.caps.db;
+    edit.addEventListener("click", () => startEdit(p));
+
+    const del = document.createElement("button");
+    del.className = "btn sm";
+    del.textContent = "Delete";
+    const wouldLeave = mergedProducts().length - 1;
+    del.disabled = !state.caps.db || wouldLeave < MIN_CATALOGUE;
+    if (wouldLeave < MIN_CATALOGUE) del.title = "The catalogue keeps at least " + MIN_CATALOGUE + " products.";
+    del.addEventListener("click", async () => {
+      if (del.dataset.armed !== "1") {
+        del.dataset.armed = "1";
+        del.textContent = "Delete — click again";
+        setTimeout(() => { del.dataset.armed = "0"; del.textContent = "Delete"; }, 4000);
+        return;
+      }
+      del.disabled = true;
+      del.textContent = (await deleteProduct(p)) ? "Deleted" : "Could not delete";
+    });
+
     const sp = document.createElement("div"); sp.className = "spacer";
     const go = document.createElement("button");
     go.className = "btn primary";
@@ -1083,7 +1119,7 @@
       { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) },
       ta.value,
     ));
-    act.append(sp, go);
+    act.append(edit, del, sp, go);
     body.append(act);
   }
 
@@ -1096,7 +1132,9 @@
     try {
       const snap = await db.collection("products").orderBy("at", "desc").limit(200).get();
       state.products = snap.docs.map((d) => d.data()).filter((p) => p && p.sku && p.category);
+      /* Hidden rows still load: they are what suppresses a bundled product. */
       state.customCats = [...new Set(state.products
+        .filter((p) => !p.hidden)
         .map((p) => p.category)
         .filter((c) => c && !(c in (CFG.categories || {}))))];
       renderCatalogue();
@@ -1207,6 +1245,82 @@
     }
   }
 
+  /* ------------------------------------------------------------------ editing */
+  function startEdit(p) {
+    state.editingSku = p.sku;
+    state.invented = !!p.invented;
+    $("tabOwn").click();
+    $("ownHeading").textContent = "Edit " + p.sku;
+    $("ownLede").textContent = "Changes replace the shared record, so everyone sees them.";
+    $("ownCancel").classList.remove("hidden");
+    $("ownSave").textContent = "Save changes";
+
+    const known = Object.keys(CFG.categories || {});
+    $("ownCat").value = known.includes(p.category) ? p.category : "custom:" + p.category;
+    if ($("ownCat").value !== (known.includes(p.category) ? p.category : "custom:" + p.category)) {
+      $("ownCat").value = "__other__";
+    }
+    renderOwnSchema();
+    if ($("ownCatOther")) $("ownCatOther").value = p.category;
+
+    $("ownSku").value = p.sku;
+    const placed = new Set();
+    for (const i of $("ownSchema").querySelectorAll("input[data-attr]")) {
+      const k = i.dataset.attr;
+      if (p.attributes[k] != null) { i.value = p.attributes[k]; placed.add(k); }
+    }
+    $("ownExtra").textContent = "";
+    for (const k of Object.keys(p.attributes)) {
+      if (placed.has(k)) continue;
+      addExtraRow();
+      const row = $("ownExtra").lastElementChild;
+      row.querySelector(".ek").value = k;
+      row.querySelector(".ev").value = p.attributes[k];
+    }
+    if (!$("ownExtra").children.length) addExtraRow();
+    updateOwnGate();
+    $("paneOwn").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function cancelEdit() {
+    state.editingSku = "";
+    state.invented = false;
+    $("ownHeading").textContent = "Add a product";
+    $("ownLede").textContent = "Saved to the shared catalogue, so everyone who opens this page finds it. Write the description afterwards, from the catalogue.";
+    $("ownCancel").classList.add("hidden");
+    $("ownSave").textContent = "Save to catalogue";
+    $("ownSku").value = "";
+    $("ownExtra").textContent = "";
+    addExtraRow();
+    renderOwnSchema();
+  }
+
+  /**
+   * Deleting hides the record rather than only removing a document, because the bundled
+   * products live in the page and cannot be removed from it — a tombstone is the only way
+   * for a shared catalogue to lose one. The floor exists so nobody empties the catalogue
+   * for everyone else with a few clicks.
+   */
+  const MIN_CATALOGUE = 3;
+
+  async function deleteProduct(p) {
+    const db = state.caps.db;
+    if (!db) return false;
+    if (mergedProducts().length - 1 < MIN_CATALOGUE) return false;
+    const id = p.sku.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+    if (!id) return false;
+    try {
+      await db.doc("products/" + id).set({
+        sku: p.sku, category: p.category, attributes: {},
+        hidden: true, at: new Date().toISOString(),
+      });
+      state.products = state.products.filter((x) => x.sku !== p.sku);
+      state.products.unshift({ sku: p.sku, category: p.category, attributes: {}, hidden: true });
+      renderCatalogue();
+      return true;
+    } catch { return false; }
+  }
+
   /* =========================================================== own form */
   function renderOwnForm() {
     const sel = $("ownCat");
@@ -1303,15 +1417,45 @@
     };
   }
 
+  /**
+   * What the SHARED CATALOGUE requires before it will take a record. This is a data-quality
+   * rule about the store, not a rule about writing: the skill still writes from whatever a
+   * record carries. A known category must be complete, because leaving holes in a row
+   * everyone else inherits is how a catalogue rots; a new category has no definition to be
+   * complete against, so it needs enough to be worth saving at all.
+   */
+  const MIN_NEW_CATEGORY_ATTRS = 3;
+
+  function formIssues() {
+    const p = ownProduct();
+    if (!p.category) return { blocked: true, why: "Name the category first" };
+
+    const known = suggestedAttrs(p.category);
+    if (known.length) {
+      const missing = known.filter((k) => !p.attributes[k]);
+      if (missing.length) {
+        return { blocked: true, why: "Fill every attribute for " + p.category + " — missing " + missing.join(", ") };
+      }
+      const extra = Object.keys(p.attributes).length - known.length;
+      return { blocked: false, why: known.length + " filled" + (extra > 0 ? " + " + extra + " extra" : "") };
+    }
+
+    const n = Object.keys(p.attributes).length;
+    if (n < MIN_NEW_CATEGORY_ATTRS) {
+      return { blocked: true, why: "A new category needs at least " + MIN_NEW_CATEGORY_ATTRS + " attributes — " + n + " so far" };
+    }
+    return { blocked: false, why: n + " attributes" };
+  }
+
   function updateOwnGate() {
     const p = ownProduct();
-    const n = Object.keys(p.attributes).length;
-    $("ownGate").textContent = !p.category ? "Name the category first"
-      : n ? n + " attribute" + (n === 1 ? "" : "s") + " filled"
-      : "Nothing filled in yet";
-    $("ownGo").disabled = !p.category || !state.caps.sample;
-    $("ownSave").disabled = !p.category || !state.caps.db;
+    const iss = formIssues();
+    $("ownGate").textContent = iss.why;
+    $("ownSave").disabled = iss.blocked || !state.caps.db;
     $("ownFill").disabled = !p.category || !state.caps.sample;
+    /* On a brand-new category there is no record to "fill in" — the button makes one. */
+    const fresh = $("ownCat").value === "__other__";
+    $("ownFill").textContent = fresh ? "Generate new product" : "Fill with Claude";
   }
 
   function addExtraRow() {
@@ -1372,6 +1516,13 @@
     if ($("histPanel").open) renderHistory();
   }
 
+  function deleteRun(runId, at) {
+    state.history = state.history.filter((h) => !(h.runId === runId && h.at === at));
+    try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
+    catch { /* nothing to do */ }
+    renderHistory();
+  }
+
   function renderHistory() {
     const host = $("histList");
     host.textContent = "";
@@ -1401,6 +1552,21 @@
       s.className = "s " + (h.status === "PASS" ? "pass" : "fail");
       s.textContent = h.status + (h.findings && h.findings.length ? " · " + h.findings.length : "");
 
+      const del = document.createElement("button");
+      del.className = "btn sm runx";
+      del.textContent = "Delete";
+      del.title = "Remove this run from your history";
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (del.dataset.armed !== "1") {
+          del.dataset.armed = "1";
+          del.textContent = "Click again";
+          setTimeout(() => { del.dataset.armed = "0"; del.textContent = "Delete"; }, 4000);
+          return;
+        }
+        deleteRun(h.runId, h.at);
+      });
+
       const locs = Object.keys(h.locales || {});
       const m = document.createElement("span");
       m.className = "m";
@@ -1412,7 +1578,7 @@
         locs.length ? "+ " + locs.map((c) => (h.locales[c].label || c)).join(", ") : "English only",
       ].join("  ·  ");
 
-      head.append(t, s, m);
+      head.append(t, s, m, del);
 
       const body = document.createElement("div");
       body.className = "hrunbody hidden";
@@ -1635,19 +1801,30 @@
   $("ownCat").addEventListener("change", () => { state.invented = false; renderOwnSchema(); });
   $("ownSku").addEventListener("input", updateOwnGate);
   $("ownFill").addEventListener("click", fillWithClaude);
+  $("ownCancel").addEventListener("click", cancelEdit);
   $("addExtra").addEventListener("click", addExtraRow);
 
   $("ownSave").addEventListener("click", async () => {
     const btn = $("ownSave");
-    btn.disabled = true;
-    btn.textContent = (await saveProduct(ownProduct())) ? "Saved to catalogue" : "Could not save";
-    setTimeout(() => { btn.textContent = "Save to catalogue"; updateOwnGate(); }, 1800);
-  });
-
-  $("ownGo").addEventListener("click", async () => {
     const p = ownProduct();
-    await saveProduct(p);
-    writeFor(p, $("ownNote").value);
+    const renamed = state.editingSku && state.editingSku !== p.sku;
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+
+    const ok = await saveProduct(p);
+    /* A renamed SKU would otherwise leave the old record behind as a duplicate. */
+    if (ok && renamed) await deleteProduct({ sku: state.editingSku, category: p.category });
+
+    btn.textContent = ok ? "Saved" : "Could not save";
+    setTimeout(() => {
+      cancelEdit();
+      if (ok) {
+        /* The description is written from the catalogue, on a saved record — so that is
+           where you land, with the product you just saved already open. */
+        $("tabCat").click();
+        openProduct(p.sku);
+      }
+    }, 900);
   });
 
   $("againBtn").addEventListener("click", () => {
