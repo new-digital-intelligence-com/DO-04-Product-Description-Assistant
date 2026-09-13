@@ -194,6 +194,10 @@
   }
   .workhead { display: flex; align-items: center; gap: 9px; font: 500 13px/1.4 var(--ui); margin-bottom: 10px; }
   .workhead.finished { color: var(--ink-2); margin-bottom: 0; }
+  .workhead .clock {
+    margin-left: auto; font: 400 11.5px/1 var(--mono);
+    color: var(--ink-3); font-variant-numeric: tabular-nums;
+  }
   .acts.quiet { opacity: .55; }
   .stream { margin-top: 10px; }
   .stream > summary { cursor: pointer; font: 500 12px/1 var(--ui); color: var(--ink-2); padding: 6px 0; }
@@ -796,7 +800,12 @@
     const w = openWork(ctx.work, mode === "translate" ? "Translating into " + name : "Writing the description");
     const aRec = w.step("Record read", Object.keys(p.attributes).length + " attributes");
     w.done(aRec, Object.keys(p.attributes).length + " attributes", "ok");
-    const aWrite = w.step(mode === "translate" ? "Claude translates" : "Claude writes the copy", "thinking…");
+    const aWrite = w.step(
+      mode === "translate" ? "Claude translates" : "Claude writes the copy",
+      state.tier === "quick"
+        ? "starting…"
+        : "thinking — nothing to show until it starts writing",
+    );
 
     try {
       const prompt = mode === "translate"
@@ -865,7 +874,16 @@
     head.className = "workhead";
     const pulse = document.createElement("span"); pulse.className = "pulse";
     const label = document.createElement("span"); label.textContent = title;
-    head.append(pulse, label);
+    const clock = document.createElement("span"); clock.className = "clock";
+    head.append(pulse, label, clock);
+
+    /* The most-capable model thinks silently for 5-60s before the first character. A
+       still "thinking…" with no clock reads as stuck, which is when people reload. */
+    const t0 = Date.now();
+    const ticker = setInterval(() => {
+      const s = Math.round((Date.now() - t0) / 1000);
+      clock.textContent = s < 60 ? s + "s" : Math.floor(s / 60) + "m " + (s % 60) + "s";
+    }, 1000);
 
     const steps = document.createElement("ol");
     steps.className = "acts";
@@ -926,6 +944,7 @@
         return res.findings;
       },
       error(msg) {
+        clearInterval(ticker);
         pulse.classList.add("hidden");
         label.textContent = "Could not finish";
         const e = document.createElement("div");
@@ -936,6 +955,8 @@
         host.append(e);
       },
       collapse(summary) {
+        clearInterval(ticker);
+        clock.textContent = "";
         pulse.classList.add("hidden");
         label.textContent = summary;
         head.classList.add("finished");
