@@ -348,12 +348,6 @@
     <div id="ownExtra"></div>
     <button class="btn sm" id="addExtra">+ Add attribute</button>
 
-    <div class="field wide" style="margin-top:20px">
-      <label for="ownNote">Anything Claude should know? (optional)</label>
-      <textarea id="ownNote" placeholder="e.g. lead with the weight, this is for the winter catalogue, keep it short"></textarea>
-      <span class="hint">Steers emphasis, angle and tone. It cannot add a fact — only the record grounds a claim.</span>
-    </div>
-
     <div class="actions">
       <span class="eyebrow" id="ownGate"></span>
       <div class="spacer"></div>
@@ -598,29 +592,7 @@
     return lines.join("\n");
   }
 
-  /**
-   * The operator's free-text note. It may steer emphasis, angle and tone — it may NOT
-   * introduce a fact. Without that fence, "say it is waterproof" would walk straight
-   * through the one rule the whole skill exists to enforce.
-   */
-  function noteBlock(note) {
-    if (!note || !note.trim()) return "";
-    return [
-      "",
-      "### A note from the person asking",
-      "",
-      "```",
-      note.trim(),
-      "```",
-      "",
-      "**This note is not a source of facts.** It may tell you what to emphasise, what to lead",
-      "with, who the copy is for, or what to leave out. It cannot ground a claim: if it asks for",
-      "something the record does not carry, leave that out and say so under *what did not run*.",
-      "The record below is the only thing a claim may trace to.",
-    ].join("\n");
-  }
-
-  function writePrompt(p, note) {
+  function writePrompt(p) {
     const known = !!(CFG.categories || {})[p.category];
     return [
       skillBlock(),
@@ -641,7 +613,6 @@
       "",
       "No attribute is mandatory. Write from what the record carries and leave out what it does",
       "not — a thin record makes short copy, and that is correct.",
-      noteBlock(note),
       "",
       "### The record",
       "",
@@ -649,7 +620,7 @@
     ].join("\n");
   }
 
-  function translatePrompt(p, copy, label, note) {
+  function translatePrompt(p, copy, label) {
     const limits = CFG.limits || {};
     return [
       skillBlock(),
@@ -672,7 +643,6 @@
       "   term, its " + label + " equivalent is allowed; never introduce one the English did not use.",
       "4. Match the register of the English, and use the conventions a native reader of " + label,
       "   expects from a product listing — not a word-for-word transposition of English syntax.",
-      noteBlock(note),
       "",
       'Return exactly: {"title": "…", "bullets": ["…"], "long_copy": "…", "meta_description": "…"}',
       "",
@@ -720,7 +690,7 @@
   }
 
   /* =========================================================== running */
-  async function writeFor(product, note) {
+  async function writeFor(product) {
     const sample = state.caps.sample;
     if (!sample || state.busy) return;
 
@@ -740,10 +710,10 @@
     $("runWorking").classList.remove("hidden");
     $("runWorkText").textContent = "Sending the record to Claude…";
 
-    const prompt = writePrompt(product, note);
+    const prompt = writePrompt(product);
     if (bytes(prompt) > SAMPLE_MAX_PROMPT_BYTES) {
-      fail("The skill, this record and your note come to " + bytes(prompt).toLocaleString() +
-        " bytes, over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit. Shorten the note.");
+      fail("The skill and this record come to " + bytes(prompt).toLocaleString() +
+        " bytes, over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit.");
       return;
     }
 
@@ -757,7 +727,7 @@
       state.result = {
         copy: copy, findings: findings,
         status: findings.length ? "FAIL" : "PASS",
-        tier: state.tier, applied: r.applied, note: (note || "").trim(),
+        tier: state.tier, applied: r.applied,
       };
       renderResult();
       saveHistory();
@@ -787,7 +757,7 @@
     $("runWorkText").textContent = "Translating into " + name + "…";
 
     try {
-      const tr = await askJson(translatePrompt(state.product, state.result.copy, name, state.result.note));
+      const tr = await askJson(translatePrompt(state.product, state.result.copy, name));
       const t = tr.data;
       /* The claims map travels untranslated, so the variant keeps the master's. */
       const copy = {
@@ -1071,19 +1041,6 @@
     fillRecord(tb, p.attributes);
     tbl.append(tb); sc.append(tbl); body.append(sc);
 
-    const f = document.createElement("div");
-    f.className = "field wide";
-    f.style.marginTop = "12px";
-    const l = document.createElement("label");
-    l.textContent = "Anything Claude should know? (optional)";
-    const ta = document.createElement("textarea");
-    ta.placeholder = "e.g. lead with the weight, this is for the winter catalogue, keep it short";
-    const h = document.createElement("span");
-    h.className = "hint";
-    h.textContent = "Steers emphasis, angle and tone. It cannot add a fact — only the record grounds a claim.";
-    f.append(l, ta, h);
-    body.append(f);
-
     const act = document.createElement("div");
     act.className = "actions";
 
@@ -1117,7 +1074,6 @@
     go.disabled = !state.caps.sample;
     go.addEventListener("click", () => writeFor(
       { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) },
-      ta.value,
     ));
     act.append(edit, del, sp, go);
     body.append(act);
@@ -1173,18 +1129,23 @@
   function inventPrompt(category) {
     const keys = suggestedAttrs(category);
     const regulated = Object.keys(CFG.regulated_terms || {});
+    const known = Object.keys(CFG.categories || {});
     return [
-      "Invent ONE plausible product record for an outdoor and apparel retailer, in the",
-      'category "' + category + '".',
+      "Invent ONE plausible product record for an outdoor and apparel retailer.",
+      category
+        ? 'It is in the category "' + category + '".'
+        : "**Choose the category yourself** — a short lowercase noun phrase a PIM would use, like\n" +
+          '"bike helmet" or "sleeping bag". Do not use any of: ' + known.join(", ") + ".",
       "",
       "**You are being invoked BY A PROGRAM.** Return ONE JSON object and nothing else — no",
       "markdown fence, no commentary.",
       "",
-      'Shape: {"sku": "…", "attributes": {"key": "value", …}}',
+      'Shape: {"sku": "…", "category": "…", "attributes": {"key": "value", …}}',
       "",
       keys.length
         ? "Use these attribute names where they fit, and add any others that genuinely belong:\n  " + keys.join(", ")
-        : "Choose attribute names that a PIM would actually carry for this category.",
+        : "Choose attribute names that a PIM would actually carry for this category. Give at\n" +
+          "  least four — a record with fewer is not worth storing.",
       "",
       "Rules for the record itself:",
       "",
@@ -1203,7 +1164,7 @@
     const sample = state.caps.sample;
     const btn = $("ownFill");
     const p = ownProduct();
-    if (!sample || !p.category || state.busy) return;
+    if (!sample || state.busy) return;
 
     state.busy = true;
     btn.disabled = true;
@@ -1213,6 +1174,13 @@
     try {
       const inv = (await askJson(inventPrompt(p.category))).data;
       const attrs = (inv && inv.attributes) || {};
+
+      /* When it chose the category, put that back on the form before the fields are
+         rebuilt around it — otherwise the attributes land in the wrong shape. */
+      if (!p.category && inv && inv.category) {
+        if ($("ownCat").value !== "__other__") { $("ownCat").value = "__other__"; renderOwnSchema(); }
+        if ($("ownCatOther")) $("ownCatOther").value = String(inv.category);
+      }
 
       if (inv && inv.sku) $("ownSku").value = String(inv.sku);
 
@@ -1452,7 +1420,8 @@
     const iss = formIssues();
     $("ownGate").textContent = iss.why;
     $("ownSave").disabled = iss.blocked || !state.caps.db;
-    $("ownFill").disabled = !p.category || !state.caps.sample;
+    /* With no category it invents one too, so this never waits on the form. */
+    $("ownFill").disabled = !state.caps.sample;
     /* On a brand-new category there is no record to "fill in" — the button makes one. */
     const fresh = $("ownCat").value === "__other__";
     $("ownFill").textContent = fresh ? "Generate new product" : "Fill with Claude";
@@ -1492,7 +1461,6 @@
       sku: state.product.sku,
       category: state.product.category,
       attributes: state.product.attributes,
-      note: state.result.note || "",
       tier: state.result.tier,
       applied: state.result.applied || state.result.tier,
       status: state.result.status,
@@ -1673,14 +1641,6 @@
       rt.append(rtb); rsc.append(rt); rd.append(rs, rsc);
       pane.append(rd);
 
-      if (h.note) {
-        const nd = document.createElement("details"); nd.className = "sec";
-        const ns = document.createElement("summary"); ns.textContent = "Your note for this run";
-        const np = document.createElement("p");
-        np.style.cssText = "font-size:13.5px;color:var(--ink-2);white-space:pre-wrap;margin-top:4px";
-        np.textContent = h.note;
-        nd.append(ns, np); pane.append(nd);
-      }
     };
 
     for (const code of langs) {
@@ -1837,7 +1797,7 @@
     offer(state.product.sku + (state.viewing === "en" ? "" : "-" + state.viewing) + ".json",
       JSON.stringify({
         sku: state.product.sku, category: state.product.category, locale: state.viewing,
-        attributes: state.product.attributes, note: state.result.note || "",
+        attributes: state.product.attributes,
         copy: v.copy, status: v.status, findings: v.findings, checks_off: v.checksOff || [],
       }, null, 2));
   });

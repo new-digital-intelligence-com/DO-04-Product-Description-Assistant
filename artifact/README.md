@@ -192,19 +192,6 @@ An invented record is stored with `invented: true` and tagged **made up** in the
 catalogue is shared, and a fabricated product sitting unlabelled beside real ones is exactly
 the kind of thing someone later reads as a real spec.
 
-## The note box
-
-Every product has an optional *"Anything Claude should know?"* field, and it is passed to the
-model inside a fence:
-
-> **This note is not a source of facts.** It may tell you what to emphasise, what to lead with,
-> who the copy is for, or what to leave out. It cannot ground a claim: if it asks for something
-> the record does not carry, leave that out and say so under *what did not run*.
-
-Without that fence, *"say it is waterproof"* would walk straight through the one rule the whole
-skill exists to enforce. The note is stored with the run, so a surprising result can be traced
-to what was asked for.
-
 ## Languages
 
 Quick buttons for the five the config has regulated-term lists for (`de` `fr` `es` `it` `nl`),
