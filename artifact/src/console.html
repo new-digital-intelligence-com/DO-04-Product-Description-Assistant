@@ -38,18 +38,10 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground: #141114;
-      --surface: #1c181b;
-      --surface-2: #252026;
-      --ink: #ece6ea;
-      --ink-2: #b3a7ae;
-      --ink-3: #8a7d85;
-      --line: #302a2f;
-      --line-2: #423a40;
-      --accent: #d98cb6;
-      --accent-hover: #e6a3c6;
-      --accent-on: #1f0d18;
-      --accent-soft: #33202b;
+      --ground: #141114; --surface: #1c181b; --surface-2: #252026;
+      --ink: #ece6ea; --ink-2: #b3a7ae; --ink-3: #8a7d85;
+      --line: #302a2f; --line-2: #423a40;
+      --accent: #d98cb6; --accent-hover: #e6a3c6; --accent-on: #1f0d18; --accent-soft: #33202b;
       --pass: #6ec194; --pass-soft: #132a1f;
       --fail: #e28a8a; --fail-soft: #2d1717;
       --warn: #d4a35a; --warn-soft: #2b2114;
@@ -57,18 +49,10 @@
     }
   }
   :root[data-theme="dark"] {
-    --ground: #141114;
-    --surface: #1c181b;
-    --surface-2: #252026;
-    --ink: #ece6ea;
-    --ink-2: #b3a7ae;
-    --ink-3: #8a7d85;
-    --line: #302a2f;
-    --line-2: #423a40;
-    --accent: #d98cb6;
-    --accent-hover: #e6a3c6;
-    --accent-on: #1f0d18;
-    --accent-soft: #33202b;
+    --ground: #141114; --surface: #1c181b; --surface-2: #252026;
+    --ink: #ece6ea; --ink-2: #b3a7ae; --ink-3: #8a7d85;
+    --line: #302a2f; --line-2: #423a40;
+    --accent: #d98cb6; --accent-hover: #e6a3c6; --accent-on: #1f0d18; --accent-soft: #33202b;
     --pass: #6ec194; --pass-soft: #132a1f;
     --fail: #e28a8a; --fail-soft: #2d1717;
     --warn: #d4a35a; --warn-soft: #2b2114;
@@ -78,13 +62,9 @@
   *, *::before, *::after { box-sizing: border-box; }
 
   body {
-    margin: 0;
-    background: var(--ground);
-    color: var(--ink);
-    font: 400 15px/1.55 var(--ui);
-    -webkit-font-smoothing: antialiased;
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 400 15px/1.55 var(--ui); -webkit-font-smoothing: antialiased;
   }
-
   h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -.012em; text-wrap: balance; }
   p { margin: 0; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
@@ -92,61 +72,40 @@
 
   .shell { max-width: 1060px; margin: 0 auto; padding: 0 24px 100px; }
 
-  .eyebrow {
-    font: 600 10.5px/1 var(--mono);
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
+  .eyebrow { font: 600 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
 
   /* ---- masthead ---- */
-  .masthead { background: var(--surface); border-bottom: 1px solid var(--line); margin-bottom: 26px; }
-  .masthead-in {
-    max-width: 1060px; margin: 0 auto; padding: 18px 24px;
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-  }
-  .mark {
-    font: 700 12.5px/1 var(--mono); letter-spacing: .07em;
-    color: var(--accent-on); background: var(--accent);
-    padding: 7px 9px; border-radius: var(--radius);
-  }
+  .masthead { background: var(--surface); border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+  .masthead-in { max-width: 1060px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .mark { font: 700 12.5px/1 var(--mono); letter-spacing: .07em; color: var(--accent-on); background: var(--accent); padding: 7px 9px; border-radius: var(--radius); }
   .masthead h1 { font-size: 17px; }
   .masthead .sub { color: var(--ink-3); font-size: 13px; }
   .masthead .spacer { flex: 1; }
 
   /* ---- status strip ---- */
   .status {
-    display: flex; gap: 18px; flex-wrap: wrap;
+    display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--radius); padding: 11px 15px; margin-bottom: 22px;
-    font-size: 13px;
+    border-radius: var(--radius); padding: 11px 15px; margin-bottom: 8px; font-size: 13px;
   }
   .status .item { display: flex; align-items: center; gap: 7px; color: var(--ink-2); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-2); flex: none; }
   .dot.ok { background: var(--pass); }
   .dot.bad { background: var(--fail); }
-  .dot.warn { background: var(--warn); }
   .status .spacer { flex: 1; }
-  .status .note { color: var(--ink-3); font-size: 12.5px; }
   .tierpick { display: flex; align-items: center; gap: 8px; }
   .tierpick select {
     font: 400 12.5px/1.3 var(--ui); padding: 5px 8px;
     border: 1px solid var(--line-2); border-radius: 3px;
     background: var(--surface); color: var(--ink);
   }
-  .tiernote {
-    margin: -14px 0 22px; font-size: 12.5px; color: var(--ink-3); max-width: 70ch;
-  }
+  .tiernote { margin: 0 0 22px; font-size: 12.5px; color: var(--ink-3); max-width: 72ch; }
 
   /* ---- panels ---- */
-  .panel {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 22px; margin-bottom: 22px;
-  }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-bottom: 22px; }
   .panel > header { margin-bottom: 16px; display: grid; gap: 5px; }
   .panel h2 { font-size: 18px; }
-  .panel .lede { color: var(--ink-2); font-size: 13.5px; max-width: 64ch; }
+  .panel .lede { color: var(--ink-2); font-size: 13.5px; max-width: 66ch; }
 
   /* ---- tabs ---- */
   .tabs { display: flex; gap: 2px; margin-bottom: -1px; }
@@ -155,32 +114,37 @@
     background: none; border: 1px solid transparent; border-bottom: 0;
     border-radius: var(--radius) var(--radius) 0 0; color: var(--ink-3);
   }
-  .tab[aria-selected="true"] {
-    background: var(--surface); border-color: var(--line);
-    color: var(--ink); font-weight: 600;
-  }
+  .tab[aria-selected="true"] { background: var(--surface); border-color: var(--line); color: var(--ink); font-weight: 600; }
 
   /* ---- catalogue ---- */
-  .cat { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  .cat th {
-    text-align: left; padding: 8px 10px;
-    font: 600 10px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-3); border-bottom: 1px solid var(--line-2);
+  .prod { border-bottom: 1px solid var(--line); }
+  .prod:last-child { border-bottom: 0; }
+  .prodhead {
+    display: grid; grid-template-columns: 108px 1fr auto auto; gap: 14px;
+    align-items: center; padding: 11px 4px; cursor: pointer;
   }
-  .cat td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-  .cat tr:last-child td { border-bottom: 0; }
-  .cat tr[data-sel="1"] td { background: var(--accent-soft); }
-  .cat .sku { font: 500 12.5px/1 var(--mono); }
-  .cat .st { font: 500 11px/1 var(--mono); }
-  .cat .st.ok { color: var(--pass); }
-  .cat .st.hold { color: var(--fail); }
-  .cat .st.unk { color: var(--warn); }
-  .cat button.pick {
-    font: 500 12px/1 var(--ui); padding: 6px 11px; cursor: pointer;
-    border: 1px solid var(--line-2); border-radius: 3px;
-    background: var(--surface); color: var(--ink);
+  .prodhead:hover { background: var(--surface-2); }
+  .prod[data-open="1"] .prodhead { background: var(--accent-soft); }
+  .prodhead .sku { font: 500 12.5px/1.3 var(--mono); }
+  .prodhead .nm { font: 500 14px/1.35 var(--ui); min-width: 0; }
+  .prodhead .nm small { display: block; font: 400 11.5px/1.4 var(--mono); color: var(--ink-3); }
+  .prodhead .st { font: 500 11px/1 var(--mono); white-space: nowrap; }
+  .st.ok { color: var(--pass); } .st.hold { color: var(--fail); } .st.unk { color: var(--warn); }
+  .prodbody { padding: 4px 4px 16px 122px; }
+  .prodbody .scroll { margin-bottom: 12px; }
+  @media (max-width: 680px) {
+    .prodhead { grid-template-columns: 1fr auto; }
+    .prodhead .sku { grid-column: 1; }
+    .prodbody { padding-left: 4px; }
   }
-  .cat button.pick:hover { border-color: var(--accent); }
+
+  /* ---- record table ---- */
+  .rec { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rec th { text-align: left; padding: 7px 10px; font: 600 10px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--line-2); }
+  .rec td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .rec td.k { font: 500 12px/1.5 var(--mono); color: var(--ink-2); white-space: nowrap; }
+  .rec td.v { font: 400 12px/1.5 var(--mono); }
+  .rec tr:last-child td { border-bottom: 0; }
   .scroll { overflow-x: auto; }
 
   /* ---- forms ---- */
@@ -188,11 +152,12 @@
   .field { display: grid; gap: 4px; }
   .field.wide { grid-column: 1 / -1; }
   .field label { font: 500 11.5px/1 var(--ui); color: var(--ink-2); }
-  .field input, .field select {
-    font: 400 13.5px/1.4 var(--ui); padding: 8px 10px; width: 100%;
+  .field input, .field select, .field textarea {
+    font: 400 13.5px/1.45 var(--ui); padding: 8px 10px; width: 100%;
     border: 1px solid var(--line-2); border-radius: var(--radius);
     background: var(--surface); color: var(--ink);
   }
+  .field textarea { resize: vertical; min-height: 62px; }
   .field .hint { font-size: 11.5px; color: var(--ink-3); }
   .req { color: var(--fail); }
   .attrrow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
@@ -217,65 +182,41 @@
   .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: .25 } 50% { opacity: 1 } }
 
-  /* ---- the copy itself ---- */
-  .verdict { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-  .badge {
-    font: 700 11px/1 var(--mono); letter-spacing: .1em;
-    padding: 6px 10px; border-radius: 3px;
-  }
+  /* ---- the copy ---- */
+  .verdict { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .badge { font: 700 11px/1 var(--mono); letter-spacing: .1em; padding: 6px 10px; border-radius: 3px; }
   .badge.pass { background: var(--pass-soft); color: var(--pass); }
   .badge.fail { background: var(--fail-soft); color: var(--fail); }
   .verdict .meta { font: 400 12px/1.4 var(--mono); color: var(--ink-3); }
 
   .copyblock { border-left: 3px solid var(--accent); padding-left: 18px; margin-bottom: 22px; }
-  .copyblock .ttl {
-    font: 500 27px/1.25 var(--copy); letter-spacing: -.01em;
-    margin-bottom: 4px; text-wrap: balance;
-  }
+  .copyblock[dir="rtl"] { border-left: 0; border-right: 3px solid var(--accent); padding-left: 0; padding-right: 18px; }
+  .copyblock .ttl { font: 500 27px/1.25 var(--copy); letter-spacing: -.01em; margin-bottom: 4px; text-wrap: balance; }
   .copyblock ul { margin: 14px 0; padding-left: 20px; }
+  .copyblock[dir="rtl"] ul { padding-left: 0; padding-right: 20px; }
   .copyblock li { font: 400 16px/1.6 var(--copy); margin-bottom: 5px; }
   .copyblock .long { font: 400 17px/1.66 var(--copy); margin: 14px 0; max-width: 64ch; }
-  .copyblock .metad {
-    font: 400 14.5px/1.55 var(--copy); color: var(--ink-2);
-    background: var(--surface-2); padding: 10px 13px; border-radius: 3px;
-    max-width: 66ch;
-  }
+  .copyblock .metad { font: 400 14.5px/1.55 var(--copy); color: var(--ink-2); background: var(--surface-2); padding: 10px 13px; border-radius: 3px; max-width: 66ch; }
   .count { font: 500 11px/1 var(--mono); color: var(--ink-3); margin-left: 8px; }
   .count.over { color: var(--fail); }
-
-  /* ---- tables of record ---- */
-  .rec { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .rec th {
-    text-align: left; padding: 7px 10px;
-    font: 600 10px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-3); border-bottom: 1px solid var(--line-2);
-  }
-  .rec td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  .rec td.k { font: 500 12px/1.5 var(--mono); color: var(--ink-2); white-space: nowrap; }
-  .rec td.v { font: 400 12px/1.5 var(--mono); }
-  .rec tr:last-child td { border-bottom: 0; }
 
   .findings { list-style: none; margin: 0; padding: 0; }
   .findings li {
     display: grid; grid-template-columns: 150px 1fr; gap: 12px;
     padding: 8px 11px; border-left: 3px solid var(--fail);
-    background: var(--fail-soft); border-radius: 3px; margin-bottom: 6px;
-    font-size: 13px;
+    background: var(--fail-soft); border-radius: 3px; margin-bottom: 6px; font-size: 13px;
   }
   .findings li .c { font: 600 11px/1.5 var(--mono); color: var(--fail); }
   .findings li.warn { border-left-color: var(--warn); background: var(--warn-soft); }
   .findings li.warn .c { color: var(--warn); }
 
-  .offnote {
-    border-left: 3px solid var(--warn); background: var(--warn-soft);
-    padding: 11px 14px; border-radius: 3px; font-size: 13px; margin-bottom: 16px;
-  }
+  .offnote { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 11px 14px; border-radius: 3px; font-size: 13px; margin-bottom: 16px; }
   .offnote b { display: block; margin-bottom: 3px; }
 
   details.sec { margin-top: 16px; }
   details.sec > summary { cursor: pointer; font: 600 12.5px/1 var(--ui); color: var(--ink-2); padding: 8px 0; }
 
-  /* ---- locales ---- */
+  /* ---- languages ---- */
   .locbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
   .locbtn {
     font: 500 12px/1 var(--mono); padding: 7px 11px; cursor: pointer;
@@ -284,22 +225,36 @@
   }
   .locbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-on); }
   .locbtn.unchecked { border-style: dashed; }
+  .langinput { display: flex; gap: 6px; align-items: center; }
+  .langinput input {
+    font: 400 12.5px/1.3 var(--ui); padding: 6px 9px; width: 180px;
+    border: 1px solid var(--line-2); border-radius: 3px;
+    background: var(--surface); color: var(--ink);
+  }
 
   /* ---- history ---- */
   .hist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
   .hist > summary { cursor: pointer; padding: 12px 16px; font: 600 13px/1 var(--ui); color: var(--ink-2); }
+  .histmeta { padding: 0 16px 10px; font-size: 12.5px; color: var(--ink-3); }
   .histlist { border-top: 1px solid var(--line); }
-  .histrow {
-    display: grid; grid-template-columns: 1fr auto; gap: 3px 14px;
-    padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13px;
-  }
-  .histrow:last-child { border-bottom: 0; }
-  .histrow .t { font: 500 13px/1.4 var(--copy); }
-  .histrow .m { grid-column: 1; font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
-  .histrow .s { font: 600 11px/1.5 var(--mono); text-align: right; white-space: nowrap; }
-  .histrow .s.pass { color: var(--pass); }
-  .histrow .s.fail { color: var(--fail); }
+  .hrun { border-bottom: 1px solid var(--line); }
+  .hrun:last-child { border-bottom: 0; }
+  .hrunhead { display: grid; grid-template-columns: 1fr auto; gap: 3px 14px; padding: 11px 16px; cursor: pointer; }
+  .hrunhead:hover { background: var(--surface-2); }
+  .hrun[data-open="1"] .hrunhead { background: var(--accent-soft); }
+  .hrunhead .t { font: 500 14px/1.4 var(--copy); }
+  .hrunhead .s { font: 600 11px/1.5 var(--mono); text-align: right; white-space: nowrap; }
+  .hrunhead .s.pass { color: var(--pass); }
+  .hrunhead .s.fail { color: var(--fail); }
+  .hrunhead .m { grid-column: 1; font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
+  .hrunbody { padding: 4px 16px 18px; }
   .histempty { padding: 14px 16px; color: var(--ink-3); font-size: 13px; }
+  .hlocs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 8px; }
+  .hloc {
+    font: 500 11px/1 var(--mono); padding: 6px 9px; border-radius: 3px; cursor: pointer;
+    border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2);
+  }
+  .hloc[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-on); }
 
   .hidden { display: none !important; }
 
@@ -323,51 +278,45 @@
 
 <div class="shell">
 
-  <section class="status" id="status">
+  <section class="status">
     <div class="item"><span class="dot" id="dotSample"></span><span id="txtSample">Checking Claude…</span></div>
-    <div class="item"><span class="dot" id="dotDb"></span><span id="txtDb">Checking history…</span></div>
+    <div class="item"><span class="dot" id="dotDb"></span><span id="txtDb">Checking catalogue…</span></div>
     <div class="item"><span class="dot" id="dotDl"></span><span id="txtDl">Checking downloads…</span></div>
     <div class="spacer"></div>
     <label class="tierpick">
       <span class="eyebrow">Model</span>
       <select id="tierSel">
-        <option value="complex">Complex — thinks longest</option>
-        <option value="default">Default — balanced</option>
-        <option value="quick">Quick — no thinking, fastest</option>
+        <option value="complex">Most capable — thinks longest</option>
+        <option value="default">Balanced — everyday</option>
+        <option value="quick">Fastest — no thinking first</option>
       </select>
     </label>
   </section>
   <p class="tiernote" id="tierNote"></p>
 
   <div class="tabs">
-    <button class="tab" id="tabCat" aria-selected="true">Sample catalogue</button>
-    <button class="tab" id="tabOwn" aria-selected="false">Your own product</button>
+    <button class="tab" id="tabCat" aria-selected="true">Catalogue</button>
+    <button class="tab" id="tabOwn" aria-selected="false">Add a product</button>
   </div>
 
   <!-- ---------- catalogue ---------- -->
   <section class="panel" id="paneCat" style="border-radius:0 var(--radius) var(--radius) var(--radius)">
     <header>
-      <h2>Pick a product</h2>
-      <p class="lede">Held rows are missing an attribute the category requires. The skill never
-        writes around a missing mandatory attribute — fill it in on the other tab, or pick
-        another product.</p>
+      <h2>Catalogue</h2>
+      <p class="lede">Click a product to see everything on its record. Held rows are missing an
+        attribute their category requires — the skill never writes around a missing mandatory
+        attribute.</p>
     </header>
-    <div class="scroll">
-      <table class="cat">
-        <thead>
-          <tr><th>SKU</th><th>Category</th><th>Product</th><th>Gate</th><th></th></tr>
-        </thead>
-        <tbody id="catBody"></tbody>
-      </table>
-    </div>
+    <div id="catList"></div>
   </section>
 
-  <!-- ---------- own product ---------- -->
+  <!-- ---------- add a product ---------- -->
   <section class="panel hidden" id="paneOwn" style="border-radius:0 var(--radius) var(--radius) var(--radius)">
     <header>
-      <h2>Describe your own product</h2>
-      <p class="lede">Anything you leave blank stays out of the copy — that is the grounding rule,
-        not a limitation. Nothing is invented to fill a gap.</p>
+      <h2>Add a product</h2>
+      <p class="lede">Saved to the shared catalogue, so everyone who opens this page finds it.
+        Anything you leave blank stays out of the copy — that is the grounding rule, not a
+        limitation.</p>
     </header>
 
     <div class="fields">
@@ -389,10 +338,17 @@
     <div id="ownExtra"></div>
     <button class="btn sm" id="addExtra">+ Add attribute</button>
 
+    <div class="field wide" style="margin-top:20px">
+      <label for="ownNote">Anything Claude should know? (optional)</label>
+      <textarea id="ownNote" placeholder="e.g. lead with the weight, this is for the winter catalogue, keep it short"></textarea>
+      <span class="hint">Steers emphasis, angle and tone. It cannot add a fact — only the record grounds a claim.</span>
+    </div>
+
     <div class="actions">
       <span class="eyebrow" id="ownGate"></span>
       <div class="spacer"></div>
-      <button class="btn primary" id="ownGo">Write the description</button>
+      <button class="btn" id="ownSave">Save to catalogue</button>
+      <button class="btn primary" id="ownGo">Save &amp; get description</button>
     </div>
   </section>
 
@@ -417,7 +373,7 @@
 
       <div class="offnote hidden" id="checksOffNote"></div>
 
-      <div class="copyblock">
+      <div class="copyblock" id="copyBlock">
         <div class="ttl" id="outTitle"></div>
         <div><span class="count" id="cntTitle"></span></div>
         <ul id="outBullets"></ul>
@@ -442,22 +398,22 @@
 
       <details class="sec">
         <summary>Source record</summary>
-        <div class="scroll">
-          <table class="rec"><tbody id="outRecord"></tbody></table>
-        </div>
+        <div class="scroll"><table class="rec"><tbody id="outRecord"></tbody></table></div>
       </details>
 
       <div class="actions">
         <button class="btn" id="dlJson">Download JSON</button>
         <button class="btn" id="dlMd">Download Markdown</button>
         <div class="spacer"></div>
-        <button class="btn" id="againBtn">Write another</button>
+        <button class="btn" id="againBtn">Back to the catalogue</button>
       </div>
     </div>
   </section>
 
   <details class="hist" id="histPanel">
     <summary>Previous runs</summary>
+    <p class="histmeta">Kept in this browser only — your runs, not your colleagues'. The catalogue
+      is shared; what you tried is yours.</p>
     <div class="histlist" id="histList"></div>
   </details>
 
@@ -475,63 +431,65 @@
 
   const CFG = JSON.parse(SKILL_FILES["assets/config.json"] || "{}");
   const SAMPLE_MAX_PROMPT_BYTES = 65536;
+  const HISTORY_MAX = 25;
 
-  const LOCALE_NAMES = {
-    de: "German", fr: "French", es: "Spanish", it: "Italian", nl: "Dutch",
-    pt: "Portuguese", pl: "Polish", sv: "Swedish", da: "Danish", ja: "Japanese",
+  /* Names people actually type, mapped to the codes config.json keys its regulated-term
+     lists by. Anything not here still translates — it just runs with that check off, and
+     the page says so rather than implying a clean pass. */
+  const LANG_CODES = {
+    german: "de", deutsch: "de", de: "de",
+    french: "fr", "français": "fr", francais: "fr", fr: "fr",
+    spanish: "es", "español": "es", espanol: "es", es: "es",
+    italian: "it", italiano: "it", it: "it",
+    dutch: "nl", nederlands: "nl", nl: "nl",
+    arabic: "ar", "العربية": "ar", ar: "ar",
+    portuguese: "pt", "português": "pt", pt: "pt",
+    polish: "pl", polski: "pl", pl: "pl",
+    swedish: "sv", svenska: "sv", sv: "sv",
+    danish: "da", dansk: "da", da: "da",
+    japanese: "ja", ja: "ja",
+    turkish: "tr", "türkçe": "tr", tr: "tr",
+    hebrew: "he", he: "he",
   };
+  const LANG_NAMES = {
+    de: "German", fr: "French", es: "Spanish", it: "Italian", nl: "Dutch",
+    ar: "Arabic", pt: "Portuguese", pl: "Polish", sv: "Swedish", da: "Danish",
+    ja: "Japanese", tr: "Turkish", he: "Hebrew",
+  };
+  const RTL = new Set(["ar", "he", "fa", "ur"]);
 
   const $ = (id) => document.getElementById(id);
   const bytes = (s) => new TextEncoder().encode(s).length;
 
   const state = {
     caps: { sample: null, db: null, downloads: null },
-    product: null,     // {sku, category, attributes}
-    result: null,      // {copy, findings, status}
-    locales: {},       // code -> {copy, findings, checksOff, status}
+    products: [],       // added here, shared through db
+    product: null,
+    result: null,       // {copy, findings, status, tier, note}
+    locales: {},        // code -> {copy, findings, checksOff, status, label}
     viewing: "en",
     busy: false,
-    /* Category NAMES people have used that the config does not know. Only the names:
-       a required-attribute list invented here would be schema living outside the skill. */
     customCats: [],
-    /* The viewer's own choice of how hard Claude should think. A per-viewer
-       convenience, so localStorage rather than db — and wrapped, because the
-       accessor itself throws in some contexts. */
     tier: "complex",
+    history: [],
+    runId: "",
   };
 
   const TIER_NOTE = {
-    complex: "Complex: the most capable model. Slowest, and the right default here — grounding copy and building a correct claims map is the hard part.",
-    default: "Default: the balanced model. Noticeably faster, and usually fine for a simple record with few attributes.",
-    quick: "Quick: fastest, and it does not think before writing. Expect weaker grounding and more findings — useful for a rough draft, not for copy you intend to ship.",
+    complex: "Most capable: thinks longest, and the right default here — grounding the copy and building a correct claims map is the hard part.",
+    "default": "Balanced: noticeably faster, and usually fine for a simple record with few attributes.",
+    quick: "Fastest: does not think before writing. Expect weaker grounding and more findings — a rough draft, not copy to ship.",
   };
 
-  function loadTier() {
-    try {
-      const v = localStorage.getItem("do04.tier");
-      if (v && TIER_NOTE[v]) state.tier = v;
-    } catch { /* private window, blocked storage — the default stands */ }
-    $("tierSel").value = state.tier;
-    $("tierNote").textContent = TIER_NOTE[state.tier];
-  }
-
-  function setTier(v) {
-    if (!TIER_NOTE[v]) return;
-    state.tier = v;
-    $("tierNote").textContent = TIER_NOTE[v];
-    try { localStorage.setItem("do04.tier", v); } catch { /* nothing to do */ }
-  }
-
   /* ===================================================================
-     The validator. Ported from lib/validate.ts, and deliberately NOT a
+     The validator. Ported from lib/validate.ts and deliberately NOT a
      second copy of the rules: every term, word and limit it tests comes
      out of config.json, which is a skill asset. The skill decides what is
      allowed; this only checks whether the model obeyed.
      =================================================================== */
   const norm = (s) => String(s == null ? "" : s)
     .normalize("NFKD").toLowerCase()
-    .replace(/[‘’ʼ]/g, "'")
-    .replace(/[–—]/g, "-")
+    .replace(/[‘’ʼ]/g, "'").replace(/[–—]/g, "-")
     .replace(/\s+/g, " ").trim();
 
   const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -541,8 +499,6 @@
   function validate(copy, attrs, locale) {
     const out = [];
     const master = locale === "en";
-    /* Regulated terms are per language. Checking German copy against the English list
-       passes everything, which looks like a clean result and is not one. */
     const regulated = master
       ? (CFG.regulated_terms || {})
       : ((CFG.regulated_terms_by_locale || {})[locale] || {});
@@ -557,17 +513,12 @@
     for (const term of Object.keys(regulated)) {
       const backing = regulated[term] || [];
       if (hasWord(hay, term) && !backing.some((b) => b in attrs)) {
-        out.push({
-          check: "regulated_claim",
-          detail: 'copy says "' + term + '" but the record carries none of: ' + backing.join(", "),
-        });
+        out.push({ check: "regulated_claim", detail: 'copy says "' + term + '" but the record carries none of: ' + backing.join(", ") });
       }
     }
 
     const claims = copy.claims || [];
-    if (master && !claims.length) {
-      out.push({ check: "claims_missing", detail: "no claims map — copy cannot be traced back to the record" });
-    }
+    if (master && !claims.length) out.push({ check: "claims_missing", detail: "no claims map — copy cannot be traced back to the record" });
     for (const c of claims) {
       if (!c || typeof c !== "object") { out.push({ check: "claim_malformed", detail: JSON.stringify(c) }); continue; }
       if (!(c.attribute in attrs)) {
@@ -582,14 +533,10 @@
       }
     }
 
-    /* The supplied banned list is English, so it only applies to the master. */
     if (master) for (const w of (CFG.banned_words || [])) {
       if (hasWord(hay, w)) out.push({ check: "banned_word", detail: 'copy contains banned term "' + w + '"' });
     }
 
-    /* Length. The skill calls this out for translations in particular — text expansion
-       routinely pushes a translated title past a channel limit, and an over-length title
-       is rewritten in the target language rather than re-translated. */
     if (limits.title && (copy.title || "").length > limits.title) {
       out.push({ check: "over_limit", detail: "title is " + copy.title.length + " characters, limit " + limits.title });
     }
@@ -605,32 +552,25 @@
     return out;
   }
 
-  /** Which checks could not run here, so a translated variant is never presented as
-   *  fully checked when half the checks were silently skipped. */
   function checksOff(locale) {
     if (locale === "en") return [];
     const off = ["banned_word (English list only)", "orphan_claim (master locale only)"];
-    if (!((CFG.regulated_terms_by_locale || {})[locale])) {
-      off.unshift("regulated_claim (no term list for this language)");
-    }
+    if (!((CFG.regulated_terms_by_locale || {})[locale])) off.unshift("regulated_claim (no term list for this language)");
     return off;
   }
 
   /**
    * The gate: a record missing a mandatory attribute is never written around.
-   * An UNKNOWN category is deliberately not a block — SKILL.md says to note it in one
-   * line and continue, because there is no required list to gate on. (lib/validate.ts
-   * in the Next.js app returns it as a hold; the skill is the source of truth.)
+   * An UNKNOWN category is deliberately not a block — SKILL.md says to note it in one line
+   * and continue, because there is no required list to gate on. (lib/validate.ts in the
+   * Next.js app returns it as a hold; the skill is the source of truth.)
    */
   function gate(category, attrs) {
     const spec = (CFG.categories || {})[category];
     if (!spec) return { unknown: true, missing: [] };
     const blank = (v) => !v || !String(v).trim() ||
       ["n/a", "na", "null", "none", "-", "tbd"].includes(String(v).trim().toLowerCase());
-    return {
-      unknown: false,
-      missing: (spec.required || []).filter((k) => !(k in attrs) || blank(attrs[k])),
-    };
+    return { unknown: false, missing: (spec.required || []).filter((k) => !(k in attrs) || blank(attrs[k])) };
   }
 
   /* =========================================================== prompts */
@@ -648,7 +588,29 @@
     return lines.join("\n");
   }
 
-  function writePrompt(p) {
+  /**
+   * The operator's free-text note. It may steer emphasis, angle and tone — it may NOT
+   * introduce a fact. Without that fence, "say it is waterproof" would walk straight
+   * through the one rule the whole skill exists to enforce.
+   */
+  function noteBlock(note) {
+    if (!note || !note.trim()) return "";
+    return [
+      "",
+      "### A note from the person asking",
+      "",
+      "```",
+      note.trim(),
+      "```",
+      "",
+      "**This note is not a source of facts.** It may tell you what to emphasise, what to lead",
+      "with, who the copy is for, or what to leave out. It cannot ground a claim: if it asks for",
+      "something the record does not carry, leave that out and say so under *what did not run*.",
+      "The record below is the only thing a claim may trace to.",
+    ].join("\n");
+  }
+
+  function writePrompt(p, note) {
     const g = gate(p.category, p.attributes);
     return [
       skillBlock(),
@@ -667,10 +629,7 @@
           "list to gate on and no keyword plan to target, so take keywords from the record's own\n" +
           "attributes. Every other rule still applies."
         : "The category is in the config, so its required attributes, keyword plan and limits apply.",
-      "",
-      "Remember what the claims map is for: `text` must appear VERBATIM in the copy you wrote,",
-      "`attribute` must be a key on the record below, and `value` must be that key's value. A",
-      "script checks all three, so a claim that paraphrases your own sentence will fail.",
+      noteBlock(note),
       "",
       "### The record",
       "",
@@ -678,8 +637,7 @@
     ].join("\n");
   }
 
-  function translatePrompt(p, copy, locale) {
-    const name = LOCALE_NAMES[locale] || locale;
+  function translatePrompt(p, copy, label, note) {
     const limits = CFG.limits || {};
     return [
       skillBlock(),
@@ -688,7 +646,7 @@
       "",
       "**You are being invoked BY A PROGRAM.** Return ONE JSON object and nothing else.",
       "",
-      "Translate the approved English description below into **" + name + "** (`" + locale + "`).",
+      "Translate the approved English description below into **" + label + "**.",
       "The *Locale Variants* rules above apply in full. In particular:",
       "",
       "1. **Do not return a claims map.** The claims map is not translated — traceability points",
@@ -696,12 +654,15 @@
       "2. **Check the limits in the target language before you answer.** Text expansion routinely",
       "   pushes a translated title over the limit. Title max " + (limits.title || 70) + ", meta",
       "   description max " + (limits.meta_description || 160) + ", each bullet max " + (limits.bullet || 140) + ".",
-      "   If a translation runs over, **rewrite it in " + name + "** — do not re-translate and do",
+      "   If a translation runs over, **rewrite it in " + label + "** — do not re-translate and do",
       "   not truncate mid-word.",
       "3. A regulated term must still be backed by the record. If the English copy earned the",
-      "   term, its " + name + " equivalent is allowed; never introduce one the English did not use.",
+      "   term, its " + label + " equivalent is allowed; never introduce one the English did not use.",
+      "4. Match the register of the English, and use the conventions a native reader of " + label,
+      "   expects from a product listing — not a word-for-word transposition of English syntax.",
+      noteBlock(note),
       "",
-      "Return exactly: {\"title\": \"…\", \"bullets\": [\"…\"], \"long_copy\": \"…\", \"meta_description\": \"…\"}",
+      'Return exactly: {"title": "…", "bullets": ["…"], "long_copy": "…", "meta_description": "…"}',
       "",
       "### The record (for grounding — unchanged, has no language)",
       "",
@@ -710,16 +671,14 @@
       "### The approved English master",
       "",
       JSON.stringify({
-        title: copy.title,
-        bullets: copy.bullets,
-        long_copy: copy.long_copy,
-        meta_description: copy.meta_description,
+        title: copy.title, bullets: copy.bullets,
+        long_copy: copy.long_copy, meta_description: copy.meta_description,
       }, null, 2),
     ].join("\n");
   }
 
   /* =========================================================== running */
-  async function writeFor(product) {
+  async function writeFor(product, note) {
     const sample = state.caps.sample;
     if (!sample || state.busy) return;
 
@@ -728,18 +687,21 @@
     state.locales = {};
     state.viewing = "en";
     state.busy = true;
+    state.runId = String(Date.now());
 
-    showRunPane(product);
+    $("paneRun").classList.remove("hidden");
+    $("runSku").textContent = product.sku + " · " + product.category;
+    $("paneRun").scrollIntoView({ behavior: "smooth", block: "start" });
     $("runTitle").textContent = "Writing…";
     $("runResult").classList.add("hidden");
     $("runError").classList.add("hidden");
     $("runWorking").classList.remove("hidden");
     $("runWorkText").textContent = "Sending the record to Claude…";
 
-    const prompt = writePrompt(product);
+    const prompt = writePrompt(product, note);
     if (bytes(prompt) > SAMPLE_MAX_PROMPT_BYTES) {
-      fail("The skill and this record come to " + bytes(prompt).toLocaleString() +
-        " bytes, over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit.");
+      fail("The skill, this record and your note come to " + bytes(prompt).toLocaleString() +
+        " bytes, over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit. Shorten the note.");
       return;
     }
 
@@ -749,11 +711,14 @@
         cache: false,
         onText: () => { $("runWorkText").textContent = "Claude is writing the copy…"; },
       });
-      if (gate(product.category, product.attributes).unknown) rememberCategory(product.category);
       const findings = validate(copy, product.attributes, "en");
-      state.result = { copy: copy, findings: findings, status: findings.length ? "FAIL" : "PASS", tier: state.tier };
+      state.result = {
+        copy: copy, findings: findings,
+        status: findings.length ? "FAIL" : "PASS",
+        tier: state.tier, note: (note || "").trim(),
+      };
       renderResult();
-      saveRun();
+      saveHistory();
     } catch (e) {
       fail(sampleErrorCopy(e));
       return;
@@ -763,20 +728,27 @@
     }
   }
 
-  async function translateTo(locale) {
+  async function translateTo(label) {
     const sample = state.caps.sample;
     if (!sample || state.busy || !state.result) return;
-    if (state.locales[locale]) { state.viewing = locale; renderResult(); return; }
+
+    const typed = String(label).trim();
+    if (!typed) return;
+    const code = LANG_CODES[typed.toLowerCase()] ||
+      typed.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "other";
+    const name = LANG_NAMES[code] || typed;
+
+    if (state.locales[code]) { state.viewing = code; renderResult(); return; }
 
     state.busy = true;
     $("runWorking").classList.remove("hidden");
-    $("runWorkText").textContent = "Translating into " + (LOCALE_NAMES[locale] || locale) + "…";
+    $("runWorkText").textContent = "Translating into " + name + "…";
 
     try {
-      const t = await sample.json(translatePrompt(state.product, state.result.copy, locale), {
-        modelTier: state.tier,
-        cache: false,
-      });
+      const t = await sample.json(
+        translatePrompt(state.product, state.result.copy, name, state.result.note),
+        { modelTier: state.tier, cache: false },
+      );
       /* The claims map travels untranslated, so the variant keeps the master's. */
       const copy = {
         title: t.title, bullets: t.bullets,
@@ -784,16 +756,14 @@
         keywords_used: state.result.copy.keywords_used || [],
         claims: state.result.copy.claims || [],
       };
-      const findings = validate(copy, state.product.attributes, locale);
-      state.locales[locale] = {
-        copy: copy,
-        findings: findings,
-        checksOff: checksOff(locale),
-        status: findings.length ? "FAIL" : "PASS",
+      const findings = validate(copy, state.product.attributes, code);
+      state.locales[code] = {
+        copy: copy, findings: findings, checksOff: checksOff(code),
+        status: findings.length ? "FAIL" : "PASS", label: name,
       };
-      state.viewing = locale;
+      state.viewing = code;
       renderResult();
-      saveRun();
+      saveHistory();
     } catch (e) {
       showError(sampleErrorCopy(e));
     } finally {
@@ -806,16 +776,12 @@
     const code = e && e.code ? e.code : "error";
     if (code === "not_granted") return "You declined to let this page ask Claude. Reload the page to be asked again.";
     if (code === "rate_limited") return "Claude is rate-limited for this view. Wait a moment before trying again.";
-    if (code === "invalid_json") return "Claude did not return usable JSON. Try again — if it keeps happening, the record may be confusing the contract.";
+    if (code === "invalid_json") return "Claude did not return usable JSON. Try again — if it keeps happening, the record or your note may be confusing the contract.";
     if (code === "cancelled") return "Stopped.";
     return ((e && e.message) || "The request failed.") + " (" + code + ")";
   }
 
-  function fail(msg) {
-    state.busy = false;
-    $("runWorking").classList.add("hidden");
-    showError(msg);
-  }
+  function fail(msg) { state.busy = false; $("runWorking").classList.add("hidden"); showError(msg); }
   function showError(msg) {
     const el = $("runError");
     el.textContent = msg;
@@ -824,15 +790,7 @@
   }
 
   /* =========================================================== render */
-  function showRunPane(p) {
-    $("paneRun").classList.remove("hidden");
-    $("runSku").textContent = p.sku + " · " + p.category;
-    $("paneRun").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function view() {
-    return state.viewing === "en" ? state.result : state.locales[state.viewing];
-  }
+  function view() { return state.viewing === "en" ? state.result : state.locales[state.viewing]; }
 
   function renderResult() {
     const v = view();
@@ -842,7 +800,7 @@
     $("runResult").classList.remove("hidden");
     $("runTitle").textContent = state.viewing === "en"
       ? "English master"
-      : (LOCALE_NAMES[state.viewing] || state.viewing) + " variant — draft pending native review";
+      : (v.label || state.viewing) + " — draft pending native review";
 
     const badge = $("verdictBadge");
     badge.textContent = v.status;
@@ -850,6 +808,7 @@
     $("verdictMeta").textContent = [
       v.findings.length ? v.findings.length + " finding" + (v.findings.length === 1 ? "" : "s") : "every check that could run, passed",
       "model: " + (state.result.tier || "complex"),
+      (state.result.copy.claims || []).length + " claims",
     ].join("  ·  ");
 
     renderLocaleBar();
@@ -859,16 +818,18 @@
     if (off.length) {
       offEl.classList.remove("hidden");
       offEl.textContent = "";
-      const b = document.createElement("b");
-      b.textContent = "Not checked in this language";
+      const b = document.createElement("b"); b.textContent = "Not checked in this language";
       const p = document.createElement("p");
       p.textContent = off.join(" · ") + ". A pass here is narrower than a pass in English, and this variant is a draft pending native review.";
       offEl.append(b, p);
     } else offEl.classList.add("hidden");
 
+    const block = $("copyBlock");
+    if (RTL.has(state.viewing)) block.setAttribute("dir", "rtl"); else block.removeAttribute("dir");
+
     const c = v.copy;
     $("outTitle").textContent = c.title || "";
-    setCount($("cntTitle"), (c.title || "").length, limits.title, "title");
+    setCount($("cntTitle"), (c.title || "").length, limits.title);
 
     const ul = $("outBullets");
     ul.textContent = "";
@@ -886,7 +847,7 @@
 
     $("outLong").textContent = c.long_copy || "";
     $("outMeta").textContent = c.meta_description || "";
-    setCount($("cntMeta"), (c.meta_description || "").length, limits.meta_description, "meta description");
+    setCount($("cntMeta"), (c.meta_description || "").length, limits.meta_description);
 
     const fl = $("outFindings");
     fl.textContent = "";
@@ -900,36 +861,40 @@
     }
     $("noFindings").classList.toggle("hidden", v.findings.length > 0);
 
-    const ct = $("outClaims");
-    ct.textContent = "";
-    for (const cl of (c.claims || [])) {
-      const tr = document.createElement("tr");
-      const a = document.createElement("td"); a.textContent = cl.text || "";
-      const b = document.createElement("td"); b.className = "k"; b.textContent = cl.attribute || "";
-      const d = document.createElement("td"); d.className = "v"; d.textContent = cl.value || "";
-      tr.append(a, b, d);
-      ct.append(tr);
-    }
-
-    const rt = $("outRecord");
-    rt.textContent = "";
-    for (const k of Object.keys(state.product.attributes)) {
-      const tr = document.createElement("tr");
-      const a = document.createElement("td"); a.className = "k"; a.textContent = k;
-      const b = document.createElement("td"); b.className = "v"; b.textContent = state.product.attributes[k];
-      tr.append(a, b);
-      rt.append(tr);
-    }
+    fillClaims($("outClaims"), c.claims || []);
+    fillRecord($("outRecord"), state.product.attributes);
 
     $("dlJson").classList.toggle("hidden", !state.caps.downloads);
     $("dlMd").classList.toggle("hidden", !state.caps.downloads);
   }
 
-  function setCount(el, len, limit, what) {
+  function fillClaims(host, claims) {
+    host.textContent = "";
+    for (const cl of claims) {
+      const tr = document.createElement("tr");
+      const a = document.createElement("td"); a.textContent = cl.text || "";
+      const b = document.createElement("td"); b.className = "k"; b.textContent = cl.attribute || "";
+      const d = document.createElement("td"); d.className = "v"; d.textContent = cl.value || "";
+      tr.append(a, b, d);
+      host.append(tr);
+    }
+  }
+
+  function fillRecord(host, attrs) {
+    host.textContent = "";
+    for (const k of Object.keys(attrs || {})) {
+      const tr = document.createElement("tr");
+      const a = document.createElement("td"); a.className = "k"; a.textContent = k;
+      const b = document.createElement("td"); b.className = "v"; b.textContent = attrs[k];
+      tr.append(a, b);
+      host.append(tr);
+    }
+  }
+
+  function setCount(el, len, limit) {
     if (!limit) { el.textContent = ""; return; }
     el.textContent = len + " / " + limit + " characters";
     el.className = "count" + (len > limit ? " over" : "");
-    el.title = what + " limit";
   }
 
   function renderLocaleBar() {
@@ -942,68 +907,207 @@
       b.className = "locbtn" + (unchecked ? " unchecked" : "");
       b.setAttribute("aria-pressed", String(state.viewing === code));
       b.textContent = label + (state.locales[code] ? " ✓" : "");
-      if (unchecked) b.title = "No regulated-term list for this language — those checks run off.";
+      if (unchecked) b.title = "No regulated-term list for this language — that check runs off.";
       b.addEventListener("click", () => {
         if (code === "en") { state.viewing = "en"; renderResult(); }
-        else translateTo(code);
+        else translateTo(label);
       });
       return b;
     };
 
-    bar.append(mk("en", "EN", false));
-    for (const code of CHECKED_LOCALES) bar.append(mk(code, code.toUpperCase(), false));
-    /* Offerable but honest: a language with no term list runs with those checks off. */
-    for (const code of ["pt", "sv", "ja"]) {
-      if (!CHECKED_LOCALES.includes(code)) bar.append(mk(code, code.toUpperCase(), true));
+    bar.append(mk("en", "English", false));
+    for (const code of CHECKED_LOCALES) bar.append(mk(code, LANG_NAMES[code] || code, false));
+    /* Two common asks the config has no term list for, offered dashed so the gap is visible. */
+    for (const code of ["ar", "pt"]) {
+      if (!CHECKED_LOCALES.includes(code)) bar.append(mk(code, LANG_NAMES[code] || code, true));
     }
+    for (const code of Object.keys(state.locales)) {
+      if (code === "en" || CHECKED_LOCALES.includes(code) || code === "ar" || code === "pt") continue;
+      bar.append(mk(code, state.locales[code].label, !((CFG.regulated_terms_by_locale || {})[code])));
+    }
+
+    /* Any language, typed. One the config does not know still translates — the page just
+       says which checks could not run rather than implying a clean pass. */
+    const wrap = document.createElement("span");
+    wrap.className = "langinput";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "any language…";
+    input.setAttribute("aria-label", "Translate into another language");
+    const go = document.createElement("button");
+    go.className = "locbtn";
+    go.textContent = "Translate";
+    const fire = () => { const val = input.value.trim(); if (val) { input.value = ""; translateTo(val); } };
+    go.addEventListener("click", fire);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fire(); } });
+    wrap.append(input, go);
+    bar.append(wrap);
   }
 
   /* =========================================================== catalogue */
+  function mergedProducts() {
+    const bySku = new Map();
+    for (const p of CATALOGUE) bySku.set(p.sku, Object.assign({ shared: false }, p));
+    for (const p of state.products) bySku.set(p.sku, Object.assign({ shared: true }, p));
+    return [...bySku.values()];
+  }
+
   function renderCatalogue() {
-    const body = $("catBody");
-    body.textContent = "";
-    if (!CATALOGUE.length) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 5;
-      td.className = "histempty";
-      td.textContent = "No sample catalogue was bundled. Use the other tab.";
-      tr.append(td); body.append(tr);
+    const host = $("catList");
+    host.textContent = "";
+    const list = mergedProducts();
+
+    if (!list.length) {
+      const p = document.createElement("div");
+      p.className = "histempty";
+      p.textContent = "No products yet. Add one on the other tab.";
+      host.append(p);
       return;
     }
 
-    for (const p of CATALOGUE) {
+    for (const p of list) {
       const g = gate(p.category, p.attributes);
-      const tr = document.createElement("tr");
+      const row = document.createElement("div");
+      row.className = "prod";
+      row.dataset.open = "0";
 
-      const sku = document.createElement("td"); sku.className = "sku"; sku.textContent = p.sku;
-      const cat = document.createElement("td"); cat.textContent = p.category;
-      const name = document.createElement("td");
-      name.textContent = [p.attributes.brand, p.attributes.product_type].filter(Boolean).join(" ") || "—";
+      const head = document.createElement("div");
+      head.className = "prodhead";
+      head.setAttribute("role", "button");
+      head.tabIndex = 0;
 
-      const st = document.createElement("td");
-      const s = document.createElement("span");
-      if (g.unknown) { s.className = "st unk"; s.textContent = "category not in config"; }
-      else if (g.missing.length) { s.className = "st hold"; s.textContent = "held · " + g.missing.length + " missing"; s.title = g.missing.join(", "); }
-      else { s.className = "st ok"; s.textContent = "ready"; }
-      st.append(s);
+      const sku = document.createElement("span"); sku.className = "sku"; sku.textContent = p.sku;
 
-      const act = document.createElement("td");
-      const btn = document.createElement("button");
-      btn.className = "pick";
-      btn.textContent = "Write";
-      btn.disabled = !g.unknown && g.missing.length > 0;
-      if (btn.disabled) btn.title = "Missing: " + g.missing.join(", ");
-      btn.addEventListener("click", () => {
-        for (const r of body.querySelectorAll("tr")) r.dataset.sel = "0";
-        tr.dataset.sel = "1";
-        writeFor({ sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) });
-      });
-      act.append(btn);
+      const nm = document.createElement("span");
+      nm.className = "nm";
+      nm.textContent = [p.attributes.brand, p.attributes.product_type].filter(Boolean).join(" ") || "—";
+      const small = document.createElement("small");
+      small.textContent = p.category + "  ·  " + Object.keys(p.attributes).length + " attributes" +
+        (p.shared ? "  ·  added here" : "");
+      nm.append(small);
 
-      tr.append(sku, cat, name, st, act);
-      body.append(tr);
+      const st = document.createElement("span");
+      st.className = "st " + (g.unknown ? "unk" : g.missing.length ? "hold" : "ok");
+      st.textContent = g.unknown ? "category not in config" : g.missing.length ? "held · " + g.missing.length + " missing" : "ready";
+      if (g.missing.length) st.title = g.missing.join(", ");
+
+      const chev = document.createElement("span");
+      chev.className = "eyebrow";
+      chev.textContent = "details";
+
+      head.append(sku, nm, st, chev);
+
+      const body = document.createElement("div");
+      body.className = "prodbody hidden";
+
+      const toggle = () => {
+        const open = row.dataset.open === "1";
+        row.dataset.open = open ? "0" : "1";
+        body.classList.toggle("hidden", open);
+        chev.textContent = open ? "details" : "hide";
+        if (!open && !body.dataset.built) { buildProdBody(body, p, g); body.dataset.built = "1"; }
+      };
+      head.addEventListener("click", toggle);
+      head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+
+      row.append(head, body);
+      host.append(row);
     }
+  }
+
+  function buildProdBody(body, p, g) {
+    const sc = document.createElement("div");
+    sc.className = "scroll";
+    const tbl = document.createElement("table");
+    tbl.className = "rec";
+    const tb = document.createElement("tbody");
+    fillRecord(tb, p.attributes);
+    tbl.append(tb); sc.append(tbl); body.append(sc);
+
+    if (g.missing.length) {
+      const warn = document.createElement("div");
+      warn.className = "offnote";
+      warn.style.borderLeftColor = "var(--fail)";
+      warn.style.background = "var(--fail-soft)";
+      const b = document.createElement("b"); b.textContent = "Held — the gate blocks this product";
+      const t = document.createElement("p");
+      t.textContent = "Missing: " + g.missing.join(", ") + ". The skill never writes around a missing mandatory attribute. Add it on the other tab under the same SKU.";
+      warn.append(b, t); body.append(warn);
+    } else if (g.unknown) {
+      const warn = document.createElement("div");
+      warn.className = "offnote";
+      const b = document.createElement("b"); b.textContent = "Category not in the config";
+      const t = document.createElement("p");
+      t.textContent = "No required-attribute list and no keyword plan, so the gate cannot run and keywords come from the record's own attributes. Everything else still applies.";
+      warn.append(b, t); body.append(warn);
+    }
+
+    const f = document.createElement("div");
+    f.className = "field wide";
+    f.style.marginTop = "12px";
+    const l = document.createElement("label");
+    l.textContent = "Anything Claude should know? (optional)";
+    const ta = document.createElement("textarea");
+    ta.placeholder = "e.g. lead with the weight, this is for the winter catalogue, keep it short";
+    const h = document.createElement("span");
+    h.className = "hint";
+    h.textContent = "Steers emphasis, angle and tone. It cannot add a fact — only the record grounds a claim.";
+    f.append(l, ta, h);
+    body.append(f);
+
+    const act = document.createElement("div");
+    act.className = "actions";
+    const sp = document.createElement("div"); sp.className = "spacer";
+    const go = document.createElement("button");
+    go.className = "btn primary";
+    go.textContent = "Get description";
+    go.disabled = (!g.unknown && g.missing.length > 0) || !state.caps.sample;
+    go.addEventListener("click", () => writeFor(
+      { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) },
+      ta.value,
+    ));
+    act.append(sp, go);
+    body.append(act);
+  }
+
+  /* =========================================================== products in db
+     Products are SHARED: a colleague's record is the same record. What you tried on it
+     is not — that stays in your browser. */
+  async function loadProducts() {
+    const db = state.caps.db;
+    if (!db) return;
+    try {
+      const snap = await db.collection("products").orderBy("at", "desc").limit(200).get();
+      state.products = snap.docs.map((d) => d.data()).filter((p) => p && p.sku && p.category);
+      state.customCats = [...new Set(state.products
+        .map((p) => p.category)
+        .filter((c) => c && !(c in (CFG.categories || {}))))];
+      renderCatalogue();
+      renderOwnForm();
+    } catch { /* the bundled catalogue still stands */ }
+  }
+
+  async function saveProduct(p) {
+    const db = state.caps.db;
+    if (!db || !p.sku || !p.category) return false;
+    const id = p.sku.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+    if (!id) return false;
+    try {
+      await db.doc("products/" + id).set({
+        sku: p.sku, category: p.category, attributes: p.attributes,
+        at: new Date().toISOString(),
+      });
+      state.products = state.products.filter((x) => x.sku !== p.sku);
+      state.products.unshift({ sku: p.sku, category: p.category, attributes: p.attributes });
+      /* A category the config does not know is remembered by NAME only: a required-attribute
+         list invented here would be schema living outside the skill. */
+      if (!(p.category in (CFG.categories || {})) && !state.customCats.includes(p.category)) {
+        state.customCats.unshift(p.category);
+        renderOwnForm();
+      }
+      renderCatalogue();
+      return true;
+    } catch { return false; }
   }
 
   /* =========================================================== own form */
@@ -1011,14 +1115,9 @@
     const sel = $("ownCat");
     const keep = sel.value;
     sel.textContent = "";
-
     for (const c of Object.keys(CFG.categories || {})) {
-      const o = document.createElement("option");
-      o.value = c; o.textContent = c;
-      sel.append(o);
+      const o = document.createElement("option"); o.value = c; o.textContent = c; sel.append(o);
     }
-    /* Remembered from earlier runs by anyone using this page. Offered for convenience
-       only — the config still does not know them, so the gate still cannot run. */
     for (const c of state.customCats) {
       const o = document.createElement("option");
       o.value = "custom:" + c;
@@ -1028,76 +1127,39 @@
     const o = document.createElement("option");
     o.value = "__other__"; o.textContent = "something else…";
     sel.append(o);
-
     if (keep) sel.value = keep;
     if (!sel.value) sel.selectedIndex = 0;
     renderOwnSchema();
   }
 
-  async function loadCustomCategories() {
-    const db = state.caps.db;
-    if (!db) return;
-    try {
-      const snap = await db.collection("categories").orderBy("at", "desc").limit(40).get();
-      state.customCats = snap.docs
-        .map((d) => (d.data() || {}).name)
-        .filter((n) => n && !(n in (CFG.categories || {})));
-      renderOwnForm();
-    } catch { /* the dropdown just stays as the config left it */ }
-  }
-
-  /** Remember the NAME only, so the next person does not retype it. */
-  async function rememberCategory(name) {
-    const db = state.caps.db;
-    if (!db || !name || (name in (CFG.categories || {}))) return;
-    const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
-    if (!id) return;
-    try {
-      await db.doc("categories/" + id).set({ name: name, at: new Date().toISOString() });
-      if (!state.customCats.includes(name)) {
-        state.customCats.unshift(name);
-        renderOwnForm();
-      }
-    } catch { /* not remembering it is not worth failing a run over */ }
-  }
-
   function renderOwnSchema() {
     const raw = $("ownCat").value;
-    const cat = raw.startsWith("custom:") ? "__other__" : raw;
     const host = $("ownSchema");
     host.textContent = "";
 
-    if (raw.startsWith("custom:")) {
-      const note = document.createElement("p");
-      note.className = "lede";
-      note.style.marginTop = "4px";
-      note.textContent = "\u201c" + raw.slice(7) + "\u201d is not in the config, so there is no " +
-        "required-attribute list and no keyword plan. Add the attributes you have below — " +
-        "everything else still applies.";
-      host.append(note);
-      updateOwnGate();
-      return;
-    }
-
-    if (cat === "__other__") {
+    if (raw.startsWith("custom:") || raw === "__other__") {
       const wrap = document.createElement("div");
       wrap.className = "fields";
       const f = document.createElement("div");
       f.className = "field wide";
-      const l = document.createElement("label");
-      l.setAttribute("for", "ownCatOther");
-      l.textContent = "Category name";
-      const i = document.createElement("input");
-      i.id = "ownCatOther"; i.type = "text"; i.placeholder = "bike helmet";
+      if (raw === "__other__") {
+        const l = document.createElement("label");
+        l.setAttribute("for", "ownCatOther"); l.textContent = "Category name";
+        const i = document.createElement("input");
+        i.id = "ownCatOther"; i.type = "text"; i.placeholder = "bike helmet";
+        i.addEventListener("input", updateOwnGate);
+        f.append(l, i);
+      }
       const h = document.createElement("span");
       h.className = "hint";
-      h.textContent = "Not in the config, so there is no required-attribute list and no keyword plan. Everything else still applies.";
-      f.append(l, i, h); wrap.append(f); host.append(wrap);
+      h.textContent = "Not in the config, so there is no required-attribute list and no keyword plan. Add the attributes you have below — everything else still applies.";
+      f.append(h);
+      wrap.append(f); host.append(wrap);
       updateOwnGate();
       return;
     }
 
-    const spec = (CFG.categories || {})[cat] || { required: [], optional: [] };
+    const spec = (CFG.categories || {})[raw] || { required: [], optional: [] };
     const mk = (keys, title, note, required) => {
       if (!keys.length) return;
       const h4 = document.createElement("h4");
@@ -1111,17 +1173,14 @@
       const grid = document.createElement("div");
       grid.className = "fields";
       for (const k of keys) {
-        const f = document.createElement("div");
-        f.className = "field";
+        const f = document.createElement("div"); f.className = "field";
         const l = document.createElement("label");
-        l.setAttribute("for", "attr_" + k);
-        l.textContent = k;
+        l.setAttribute("for", "attr_" + k); l.textContent = k;
         if (required) { const r = document.createElement("span"); r.className = "req"; r.textContent = " *"; l.append(r); }
         const i = document.createElement("input");
         i.id = "attr_" + k; i.type = "text"; i.dataset.attr = k; i.autocomplete = "off"; i.spellcheck = false;
         i.addEventListener("input", updateOwnGate);
-        f.append(l, i);
-        grid.append(f);
+        f.append(l, i); grid.append(f);
       }
       host.append(grid);
     };
@@ -1132,12 +1191,10 @@
   }
 
   function ownProduct() {
-    const catSel = $("ownCat").value;
-    const category = catSel.startsWith("custom:")
-      ? catSel.slice(7)
-      : catSel === "__other__"
-        ? ($("ownCatOther") ? $("ownCatOther").value.trim() : "")
-        : catSel;
+    const raw = $("ownCat").value;
+    const category = raw.startsWith("custom:") ? raw.slice(7)
+      : raw === "__other__" ? ($("ownCatOther") ? $("ownCatOther").value.trim() : "")
+      : raw;
     const attributes = {};
     for (const i of $("ownSchema").querySelectorAll("input[data-attr]")) {
       const v = i.value.trim();
@@ -1155,20 +1212,13 @@
     const p = ownProduct();
     const g = gate(p.category, p.attributes);
     const el = $("ownGate");
-    const btn = $("ownGo");
-    if (!p.category) {
-      el.textContent = "Name the category first";
-      btn.disabled = true;
-    } else if (g.unknown) {
-      el.textContent = "Category not in the config — the gate cannot run";
-      btn.disabled = false;
-    } else if (g.missing.length) {
-      el.textContent = "Held — missing " + g.missing.join(", ");
-      btn.disabled = true;
-    } else {
-      el.textContent = "";
-      btn.disabled = false;
-    }
+    const held = !g.unknown && g.missing.length > 0;
+    el.textContent = !p.category ? "Name the category first"
+      : g.unknown ? "Category not in the config — the gate cannot run"
+      : held ? "Held — missing " + g.missing.join(", ")
+      : "";
+    $("ownGo").disabled = !p.category || held || !state.caps.sample;
+    $("ownSave").disabled = !p.category || !state.caps.db;
   }
 
   function addExtraRow() {
@@ -1187,90 +1237,203 @@
     $("ownExtra").append(row);
   }
 
-  /* =========================================================== history */
-  async function saveRun() {
-    const db = state.caps.db;
-    if (!db || !state.result) return;
+  /* =========================================================== history
+     localStorage, not db: these are one person's drafts and attempts. The catalogue is
+     shared because a product record is the same record for everyone; what you tried on
+     it is not. */
+  function loadHistory() {
     try {
-      const locales = {};
-      for (const code of Object.keys(state.locales)) {
-        locales[code] = {
-          status: state.locales[code].status,
-          findings: state.locales[code].findings.length,
-        };
-      }
-      await db.collection("runs").doc(state.product.sku + "-" + todayKey()).set({
-        at: new Date().toISOString(),
-        sku: state.product.sku,
-        category: state.product.category,
-        title: state.result.copy.title || "",
-        status: state.result.status,
-        findings: state.result.findings.length,
-        claims: (state.result.copy.claims || []).length,
-        tier: state.result.tier || "complex",
-        attributes: state.product.attributes,
-        copy: state.result.copy,
-        allFindings: state.result.findings,
-        locales: locales,
-      });
-    } catch { /* the result on screen is still the deliverable */ }
+      const raw = localStorage.getItem("do04.history");
+      state.history = raw ? JSON.parse(raw) : [];
+    } catch { state.history = []; }
   }
 
-  /* One document per SKU per day: re-writing the same product replaces its row rather
-     than filling the list with near-identical attempts. */
-  const todayKey = () => new Date().toISOString().slice(0, 10);
+  function saveHistory() {
+    if (!state.result) return;
+    const entry = {
+      at: new Date().toISOString(),
+      sku: state.product.sku,
+      category: state.product.category,
+      attributes: state.product.attributes,
+      note: state.result.note || "",
+      tier: state.result.tier,
+      status: state.result.status,
+      findings: state.result.findings,
+      copy: state.result.copy,
+      locales: {},
+    };
+    for (const code of Object.keys(state.locales)) {
+      const L = state.locales[code];
+      entry.locales[code] = { label: L.label, status: L.status, findings: L.findings, checksOff: L.checksOff, copy: L.copy };
+    }
+    /* Replace the entry this run already wrote rather than adding one per translation. */
+    if (state.history.length && state.history[0].sku === entry.sku && state.history[0].runId === state.runId) {
+      state.history.shift();
+    }
+    entry.runId = state.runId;
+    state.history.unshift(entry);
+    state.history = state.history.slice(0, HISTORY_MAX);
+    try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
+    catch { /* quota or blocked storage — the result on screen still stands */ }
+    if ($("histPanel").open) renderHistory();
+  }
 
-  async function loadHistory() {
-    const db = state.caps.db;
-    const el = $("histList");
-    el.textContent = "";
-    if (!db) {
+  function renderHistory() {
+    const host = $("histList");
+    host.textContent = "";
+    if (!state.history.length) {
       const p = document.createElement("div");
       p.className = "histempty";
-      p.textContent = "Run history needs the db capability, which is not available in this view.";
-      el.append(p);
+      p.textContent = "Nothing yet. Every description you generate is kept here in full — the copy, the claims map, the findings and any translations.";
+      host.append(p);
       return;
     }
-    try {
-      const snap = await db.collection("runs").orderBy("at", "desc").limit(30).get();
-      if (snap.empty) {
-        const p = document.createElement("div");
-        p.className = "histempty";
-        p.textContent = "No descriptions written yet. Everything written here is listed, and everyone who can open this page sees the same list.";
-        el.append(p);
-        return;
-      }
-      for (const doc of snap.docs) {
-        const d = doc.data() || {};
-        const row = document.createElement("div");
-        row.className = "histrow";
 
-        const t = document.createElement("span");
-        t.className = "t";
-        t.textContent = d.title || "(untitled)";
+    for (const h of state.history) {
+      const wrap = document.createElement("div");
+      wrap.className = "hrun";
+      wrap.dataset.open = "0";
 
-        const s = document.createElement("span");
-        s.className = "s " + (d.status === "PASS" ? "pass" : "fail");
-        s.textContent = d.status + (d.findings ? " · " + d.findings : "");
+      const head = document.createElement("div");
+      head.className = "hrunhead";
+      head.setAttribute("role", "button");
+      head.tabIndex = 0;
 
-        const m = document.createElement("span");
-        m.className = "m";
-        m.textContent = [
-          d.sku, d.category,
-          String(d.at || "").slice(0, 16).replace("T", " "),
-          (d.claims || 0) + " claims",
-          Object.keys(d.locales || {}).length ? Object.keys(d.locales).join("/") : "en only",
-        ].join("  ·  ");
+      const t = document.createElement("span");
+      t.className = "t";
+      t.textContent = (h.copy && h.copy.title) || "(untitled)";
 
-        row.append(t, s, m);
-        el.append(row);
-      }
-    } catch (e) {
-      const p = document.createElement("div");
-      p.className = "histempty";
-      p.textContent = "Could not read the history: " + ((e && e.message) || "unknown error");
-      el.append(p);
+      const s = document.createElement("span");
+      s.className = "s " + (h.status === "PASS" ? "pass" : "fail");
+      s.textContent = h.status + (h.findings && h.findings.length ? " · " + h.findings.length : "");
+
+      const locs = Object.keys(h.locales || {});
+      const m = document.createElement("span");
+      m.className = "m";
+      m.textContent = [
+        h.sku, h.category,
+        String(h.at).slice(0, 16).replace("T", " "),
+        (h.copy && h.copy.claims ? h.copy.claims.length : 0) + " claims",
+        h.tier || "complex",
+        locs.length ? "+ " + locs.map((c) => (h.locales[c].label || c)).join(", ") : "English only",
+      ].join("  ·  ");
+
+      head.append(t, s, m);
+
+      const body = document.createElement("div");
+      body.className = "hrunbody hidden";
+
+      const toggle = () => {
+        const open = wrap.dataset.open === "1";
+        wrap.dataset.open = open ? "0" : "1";
+        body.classList.toggle("hidden", open);
+        if (!open && !body.dataset.built) { buildHistBody(body, h); body.dataset.built = "1"; }
+      };
+      head.addEventListener("click", toggle);
+      head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+
+      wrap.append(head, body);
+      host.append(wrap);
     }
+  }
+
+  function buildHistBody(body, h) {
+    const langs = ["en"].concat(Object.keys(h.locales || {}));
+    let showing = "en";
+
+    const bar = document.createElement("div");
+    bar.className = "hlocs";
+    const pane = document.createElement("div");
+
+    const draw = () => {
+      for (const b of bar.querySelectorAll(".hloc")) b.setAttribute("aria-pressed", String(b.dataset.code === showing));
+      pane.textContent = "";
+      const v = showing === "en"
+        ? { copy: h.copy, findings: h.findings || [], checksOff: [] }
+        : h.locales[showing];
+      if (!v || !v.copy) return;
+
+      const block = document.createElement("div");
+      block.className = "copyblock";
+      if (RTL.has(showing)) block.setAttribute("dir", "rtl");
+      const ttl = document.createElement("div"); ttl.className = "ttl"; ttl.textContent = v.copy.title || "";
+      const ul = document.createElement("ul");
+      for (const b of (v.copy.bullets || [])) { const li = document.createElement("li"); li.textContent = b; ul.append(li); }
+      const lg = document.createElement("p"); lg.className = "long"; lg.textContent = v.copy.long_copy || "";
+      const md = document.createElement("div"); md.className = "metad"; md.textContent = v.copy.meta_description || "";
+      block.append(ttl, ul, lg, md);
+      pane.append(block);
+
+      if ((v.checksOff || []).length) {
+        const off = document.createElement("div");
+        off.className = "offnote";
+        const b = document.createElement("b"); b.textContent = "Not checked in this language";
+        const p = document.createElement("p"); p.textContent = v.checksOff.join(" · ") + ". Draft pending native review.";
+        off.append(b, p); pane.append(off);
+      }
+
+      if ((v.findings || []).length) {
+        const h4 = document.createElement("h4");
+        h4.style.cssText = "font-size:13.5px;margin:14px 0 7px";
+        h4.textContent = "Findings";
+        const fl = document.createElement("ul"); fl.className = "findings";
+        for (const f of v.findings) {
+          const li = document.createElement("li");
+          if (f.check === "over_limit") li.className = "warn";
+          const a = document.createElement("span"); a.className = "c"; a.textContent = f.check;
+          const bb = document.createElement("span"); bb.textContent = f.detail;
+          li.append(a, bb); fl.append(li);
+        }
+        pane.append(h4, fl);
+      }
+
+      /* The claims map is the deliverable, not an appendix — it is what makes the copy
+         checkable, so it shows for every language (untranslated, as the skill requires). */
+      const cd = document.createElement("details"); cd.className = "sec"; cd.open = true;
+      const cs = document.createElement("summary"); cs.textContent = "Claims traced";
+      const csc = document.createElement("div"); csc.className = "scroll";
+      const ct = document.createElement("table"); ct.className = "rec";
+      const cth = document.createElement("thead");
+      const ctr = document.createElement("tr");
+      for (const label of ["Statement in the copy", "Attribute", "Value"]) {
+        const th = document.createElement("th"); th.textContent = label; ctr.append(th);
+      }
+      cth.append(ctr);
+      const ctb = document.createElement("tbody");
+      fillClaims(ctb, (h.copy && h.copy.claims) || []);
+      ct.append(cth, ctb); csc.append(ct); cd.append(cs, csc);
+      pane.append(cd);
+
+      const rd = document.createElement("details"); rd.className = "sec";
+      const rs = document.createElement("summary"); rs.textContent = "Source record";
+      const rsc = document.createElement("div"); rsc.className = "scroll";
+      const rt = document.createElement("table"); rt.className = "rec";
+      const rtb = document.createElement("tbody");
+      fillRecord(rtb, h.attributes || {});
+      rt.append(rtb); rsc.append(rt); rd.append(rs, rsc);
+      pane.append(rd);
+
+      if (h.note) {
+        const nd = document.createElement("details"); nd.className = "sec";
+        const ns = document.createElement("summary"); ns.textContent = "Your note for this run";
+        const np = document.createElement("p");
+        np.style.cssText = "font-size:13.5px;color:var(--ink-2);white-space:pre-wrap;margin-top:4px";
+        np.textContent = h.note;
+        nd.append(ns, np); pane.append(nd);
+      }
+    };
+
+    for (const code of langs) {
+      const b = document.createElement("button");
+      b.className = "hloc";
+      b.dataset.code = code;
+      b.textContent = code === "en" ? "English" : ((h.locales[code] && h.locales[code].label) || code);
+      b.addEventListener("click", () => { showing = code; draw(); });
+      bar.append(b);
+    }
+
+    body.append(bar, pane);
+    draw();
   }
 
   /* =========================================================== downloads */
@@ -1278,15 +1441,13 @@
     const d = state.caps.downloads;
     if (!d) return;
     try { await d.save({ filename: filename, data: data }); }
-    catch (e) {
-      if (e && e.code !== "cancelled" && e.code !== "not_granted") showError("The file could not be saved: " + (e.message || e.code));
-    }
+    catch (e) { if (e && e.code !== "cancelled" && e.code !== "not_granted") showError("The file could not be saved: " + (e.message || e.code)); }
   }
 
   function asMarkdown() {
     const v = view();
     const c = v.copy;
-    const lines = [
+    return [
       "# " + (c.title || ""),
       "",
       ...(c.bullets || []).map((b) => "- " + b),
@@ -1311,8 +1472,23 @@
       v.findings.length
         ? "## Findings\n\n" + v.findings.map((f) => "- **" + f.check + "** — " + f.detail).join("\n")
         : "No findings.",
-    ];
-    return lines.join("\n");
+    ].join("\n");
+  }
+
+  /* =========================================================== tier */
+  function loadTier() {
+    try {
+      const v = localStorage.getItem("do04.tier");
+      if (v && TIER_NOTE[v]) state.tier = v;
+    } catch { /* private window, blocked storage — the default stands */ }
+    $("tierSel").value = state.tier;
+    $("tierNote").textContent = TIER_NOTE[state.tier];
+  }
+  function setTier(v) {
+    if (!TIER_NOTE[v]) return;
+    state.tier = v;
+    $("tierNote").textContent = TIER_NOTE[v];
+    try { localStorage.setItem("do04.tier", v); } catch { /* nothing to do */ }
   }
 
   /* =========================================================== boot */
@@ -1326,17 +1502,13 @@
     ]);
     state.caps = { sample: sample, db: db, downloads: downloads };
 
-    mark("dotSample", "txtSample", !!sample,
-      sample ? "Claude ready" : "Claude unavailable — nothing can be written in this view");
-    mark("dotDb", "txtDb", !!db,
-      db ? "History on — everyone sees the same list" : "History off in this view");
-    mark("dotDl", "txtDl", !!downloads,
-      downloads ? "Downloads ready" : "Downloads unavailable");
+    mark("dotSample", "txtSample", !!sample, sample ? "Claude ready" : "Claude unavailable — nothing can be written in this view");
+    mark("dotDb", "txtDb", !!db, db ? "Catalogue shared with everyone here" : "Shared catalogue off — bundled products only");
+    mark("dotDl", "txtDl", !!downloads, downloads ? "Downloads ready" : "Downloads unavailable");
 
-    loadCustomCategories();
-
-    for (const b of document.querySelectorAll(".cat button.pick")) b.disabled = b.disabled || !sample;
-    $("ownGo").disabled = $("ownGo").disabled || !sample;
+    await loadProducts();
+    updateOwnGate();
+    renderCatalogue();
   }
 
   function mark(dotId, txtId, ok, text) {
@@ -1362,7 +1534,19 @@
   $("ownCat").addEventListener("change", renderOwnSchema);
   $("ownSku").addEventListener("input", updateOwnGate);
   $("addExtra").addEventListener("click", addExtraRow);
-  $("ownGo").addEventListener("click", () => writeFor(ownProduct()));
+
+  $("ownSave").addEventListener("click", async () => {
+    const btn = $("ownSave");
+    btn.disabled = true;
+    btn.textContent = (await saveProduct(ownProduct())) ? "Saved to catalogue" : "Could not save";
+    setTimeout(() => { btn.textContent = "Save to catalogue"; updateOwnGate(); }, 1800);
+  });
+
+  $("ownGo").addEventListener("click", async () => {
+    const p = ownProduct();
+    await saveProduct(p);
+    writeFor(p, $("ownNote").value);
+  });
 
   $("againBtn").addEventListener("click", () => {
     $("paneRun").classList.add("hidden");
@@ -1374,19 +1558,20 @@
     offer(state.product.sku + (state.viewing === "en" ? "" : "-" + state.viewing) + ".json",
       JSON.stringify({
         sku: state.product.sku, category: state.product.category, locale: state.viewing,
-        attributes: state.product.attributes, copy: v.copy,
-        status: v.status, findings: v.findings, checks_off: v.checksOff || [],
+        attributes: state.product.attributes, note: state.result.note || "",
+        copy: v.copy, status: v.status, findings: v.findings, checks_off: v.checksOff || [],
       }, null, 2));
   });
   $("dlMd").addEventListener("click", () => {
     offer(state.product.sku + (state.viewing === "en" ? "" : "-" + state.viewing) + ".md", asMarkdown());
   });
 
-  $("histPanel").addEventListener("toggle", () => { if ($("histPanel").open) loadHistory(); });
+  $("histPanel").addEventListener("toggle", () => { if ($("histPanel").open) renderHistory(); });
 
   loadTier();
-  renderCatalogue();
+  loadHistory();
   renderOwnForm();
   addExtraRow();
+  renderCatalogue();
   boot();
 </script>

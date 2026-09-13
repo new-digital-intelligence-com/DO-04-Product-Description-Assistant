@@ -116,48 +116,79 @@ translation rules hold:
 Locales with a regulated-term list in the config (`de` `fr` `es` `it` `nl`) are offered solid;
 others are offered with a dashed border and run with that check off.
 
-## Run history
+## What is shared and what is yours
 
-Every finished description is written to the artifact's own database, one document per SKU per
-day. Everyone who can open the page sees the same list — no access rules are declared.
+Two stores, split on a real distinction:
 
-If that becomes wrong (product copy is rarely sensitive, but a pre-announcement product might be),
-add `db: { rules: [...] }` at publish time. The GP-01 repo's `mcp-manifest.json` carries a worked
-example.
+| | Where | Who sees it |
+|---|---|---|
+| **Products** | artifact `db` | everyone who opens the page |
+| **Your runs** | `localStorage` | only you, only this browser |
+| Model choice | `localStorage` | only you |
+
+A product record is the same record for everyone — one person adding the missing
+`sole_material` fixes it for the whole team. What you *tried* on it is not: drafts, rejected
+attempts and the notes you gave Claude are yours, and putting them in a shared list would turn
+a working surface into a performance review.
+
+Run history keeps everything: the record, the note, the model, the copy, the claims map, the
+findings, and every translation. Capped at 25 entries; clearing site data clears it.
+
+## Remembered categories
+
+The config knows `footwear`, `outerwear` and `accessories`. Saving a product in a category it
+does not know remembers **the name only**, so the next person finds it in the dropdown.
+
+The name, and nothing else. A required-attribute list invented in the page would be schema
+living outside the skill — exactly the drift this repo's layout exists to prevent. Such a
+category is labelled *(not in the config)* and still runs with the gate off and no keyword
+plan, which is what `SKILL.md` prescribes.
+
+To make one first-class, add it to `assets/config.json` with its required attributes and its
+keyword plan, then rebuild.
+
+## The note box
+
+Every product has an optional *"Anything Claude should know?"* field, and it is passed to the
+model inside a fence:
+
+> **This note is not a source of facts.** It may tell you what to emphasise, what to lead with,
+> who the copy is for, or what to leave out. It cannot ground a claim: if it asks for something
+> the record does not carry, leave that out and say so under *what did not run*.
+
+Without that fence, *"say it is waterproof"* would walk straight through the one rule the whole
+skill exists to enforce. The note is stored with the run, so a surprising result can be traced
+to what was asked for.
+
+## Languages
+
+Quick buttons for the five the config has regulated-term lists for (`de` `fr` `es` `it` `nl`),
+two more offered dashed (`ar` `pt` — no term list, so that check runs off), and a **free text
+box for any language at all**: type "Arabic", "deutsch", "日本語" or anything else.
+
+A name the page recognises resolves to its code and picks up whatever checks the config has.
+One it does not still translates — it just runs with the regulated-term check off and says so,
+rather than implying a clean pass. Right-to-left languages render RTL.
 
 ## Choosing the model
 
 The page does not pick a model; it asks for a **tier**, and the platform decides which model
-serves it. The picker in the status strip offers all three, remembered per viewer in
-`localStorage`:
+serves it. The picker in the status strip offers all three, remembered per viewer:
 
 | Tier | |
 |---|---|
-| `complex` | most capable, thinks longest — the default here, because grounding and a correct claims map is the hard part |
-| `default` | balanced, noticeably faster |
-| `quick` | fastest, **does not think first** — weaker grounding, more findings |
+| most capable | thinks longest — the default here, because grounding and a correct claims map is the hard part |
+| balanced | noticeably faster |
+| fastest | **does not think first** — weaker grounding, more findings |
 
-The tier is recorded on every run and shown beside the verdict, so a batch written on `quick`
-is identifiable afterwards rather than being blamed on the skill.
+There is no way to name a model (`Opus`, `Sonnet`) from an artifact: `modelTier` takes
+`quick` / `default` / `complex` and nothing else. The tier is recorded on every run and shown
+beside the verdict, so a batch written on the fastest tier is identifiable afterwards rather
+than being blamed on the skill.
 
 One limitation: the platform serves a nearby cheaper tier when the viewer's plan lacks the one
 asked for, and reports that on `modelTierApplied` — which `sample.json()` does not return, only
-`sample()` does. So this page shows the tier **requested**, not the one applied. (The GP-01
-console uses `sample()` and does surface the difference.)
-
-## Remembered categories
-
-The config knows `footwear`, `outerwear` and `accessories`. When someone writes copy for a
-category it does not know, the page saves **the name only** to the artifact's database, so the
-next person finds it in the dropdown instead of retyping it.
-
-The name, and nothing else. A required-attribute list invented in the page would be schema
-living outside the skill — exactly the drift this repo's layout exists to prevent. A remembered
-category is labelled *(not in the config)* and still runs with the gate off and no keyword plan,
-which is what `SKILL.md` prescribes.
-
-To make a category first-class, add it to `assets/config.json` with its required attributes and
-its keyword plan, then rebuild.
+`sample()` does. So this page shows the tier **requested**, not the one applied.
 
 ## Keeping it current
 
