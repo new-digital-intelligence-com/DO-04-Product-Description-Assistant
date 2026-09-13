@@ -196,11 +196,13 @@
   .workhead.finished { color: var(--ink-2); margin-bottom: 0; }
   .acts.quiet { opacity: .55; }
   .stream { margin-top: 10px; }
-  .stream > summary { cursor: pointer; font: 500 11.5px/1 var(--ui); color: var(--ink-3); padding: 5px 0; }
+  .stream > summary { cursor: pointer; font: 500 12px/1 var(--ui); color: var(--ink-2); padding: 6px 0; }
+  .stream[open] > summary { color: var(--accent); }
   .stream pre {
-    margin: 6px 0 0; padding: 10px 12px; max-height: 170px; overflow: auto;
-    background: var(--surface); border-radius: 3px;
-    font: 400 11px/1.6 var(--mono); color: var(--ink-3);
+    margin: 6px 0 0; padding: 11px 13px; max-height: 190px; overflow: auto;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px;
+    font: 400 11.5px/1.65 var(--mono); color: var(--ink-2);
     white-space: pre-wrap; overflow-wrap: anywhere;
   }
 
@@ -870,7 +872,7 @@
     const streamWrap = document.createElement("details");
     streamWrap.className = "stream hidden";
     const streamSum = document.createElement("summary");
-    streamSum.textContent = "Claude's reply as it arrives";
+    streamSum.textContent = "Claude is writing";
     const pre = document.createElement("pre");
     streamWrap.append(streamSum, pre);
 
@@ -899,6 +901,9 @@
       done: fin,
       stream(text) {
         streamWrap.classList.remove("hidden");
+        /* Open while it is live — a collapsed box is a box nobody knows is there. It
+           closes again once the copy itself is on screen a few centimetres below. */
+        streamWrap.open = true;
         /* Only the tail: the whole reply is the description, and it is about to be shown
            properly a few centimetres below. */
         pre.textContent = text.length > 1200 ? "…" + text.slice(-1200) : text;
@@ -906,7 +911,10 @@
         const dt = steps.firstElementChild && steps.children[1] && steps.children[1].querySelector(".dt");
         if (dt) dt.textContent = text.length.toLocaleString() + " characters so far";
       },
-      endStream() { streamWrap.open = false; },
+      endStream() {
+        streamWrap.open = false;
+        streamSum.textContent = "What Claude sent back";
+      },
       async checks(copy, attrs, locale) {
         const res = runChecks(copy, attrs, locale);
         for (const s of res.steps) {
