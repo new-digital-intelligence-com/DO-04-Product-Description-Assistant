@@ -54,7 +54,7 @@ standing in for a material you do not have is still a claim.
 Markdown, in this order, and nothing that is not on this list:
 
 1. **The title**, as a heading. Character count beside it when it is near the limit.
-2. **The bullets**, as a list.
+2. **The bullets**, as a list — four or five, same as the JSON contract.
 3. **The long copy**, as one paragraph.
 4. **The meta description**, labelled, with its character count.
 5. **Claims traced** — a table of every factual statement against the attribute it came
@@ -87,8 +87,35 @@ fence, no commentary.
 - `bullets` — 4 to 5 bullets, each max 140 characters.
 - `long_copy` — 60 to 110 words. One paragraph.
 - `meta_description` — max 160 characters.
+- `keywords_used` — the terms from the keyword plan you actually placed in the copy, not
+  the ones you were offered. A term you left out because it would not sit in a real
+  sentence does not belong here; claiming it is the same failure as an untraced claim, one
+  level up.
 - `claims` — one entry per factual statement. `text` must appear **verbatim** in the copy
   you wrote. `attribute` must be a key on the record. `value` must be that key's value.
+
+## Count before you answer
+
+The limits are hard caps, not targets. Count the title and the meta description against
+them before you return, in either output mode. A channel rejects a title that is one
+character over — it does not trim it for you, and nobody finds out until the feed fails.
+
+It is the cheapest check you can run on yourself, and it is the one that most often catches
+a **translation**: see *Locale Variants*.
+
+## The claims map quotes you — it does not summarise you
+
+`text` is matched against the copy by string comparison, so the usual way to fail is to
+write a good sentence and then *describe* it in the map:
+
+| You wrote | You mapped | |
+|---|---|---|
+| "Vibram rubber outsole for grip on wet rock" | `"Vibram rubber outsole"` | ✅ appears verbatim |
+| "Vibram rubber outsole for grip on wet rock" | `"has a Vibram sole"` | ❌ paraphrase — orphaned |
+
+Copy the span out of your own sentence. One entry per factual statement, not one per
+sentence: a sentence carrying two facts needs two entries, and a sentence carrying none
+needs none at all.
 
 ## Rules that will fail you if you break them
 

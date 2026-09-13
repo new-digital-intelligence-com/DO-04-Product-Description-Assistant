@@ -2,3 +2,6 @@ node_modules
 .next
 .env.local
 data/output/*.json
+
+# Built by artifact/build-artifact.mjs — the skill in plugins/ is the source.
+artifact/dist/
