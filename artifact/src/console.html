@@ -186,6 +186,29 @@
   .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: .25 } 50% { opacity: 1 } }
 
+  /* ---- activity log ---- */
+  .acts { list-style: none; margin: 6px 0 18px; padding: 0; display: grid; gap: 1px; }
+  .acts:empty { display: none; }
+  .acts li {
+    display: grid; grid-template-columns: 20px 210px 1fr; gap: 10px;
+    padding: 7px 10px; font-size: 13px; background: var(--surface-2);
+    border-radius: 3px; align-items: baseline;
+  }
+  .acts .ic { font: 700 11px/1.5 var(--mono); }
+  .acts .nm { font-weight: 500; }
+  .acts .dt { font: 400 11.5px/1.5 var(--mono); color: var(--ink-3); }
+  .acts li.run .ic { color: var(--ink-3); }
+  .acts li.ok .ic { color: var(--pass); }
+  .acts li.bad .ic { color: var(--fail); }
+  .acts li.off { opacity: .62; }
+  .acts li.off .ic { color: var(--ink-3); }
+  @media (max-width: 640px) { .acts li { grid-template-columns: 20px 1fr; } .acts .dt { grid-column: 2; } }
+
+  /* ---- saved descriptions on a product ---- */
+  .saved { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .savedbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .savedbar .none { font-size: 12.5px; color: var(--ink-3); }
+
   /* ---- the copy ---- */
   .verdict { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
   .badge { font: 700 11px/1 var(--mono); letter-spacing: .1em; padding: 6px 10px; border-radius: 3px; }
@@ -241,20 +264,20 @@
   .hist > summary { cursor: pointer; padding: 12px 16px; font: 600 13px/1 var(--ui); color: var(--ink-2); }
   .histmeta { padding: 0 16px 10px; font-size: 12.5px; color: var(--ink-3); }
   .histlist { border-top: 1px solid var(--line); }
-  .hrun { border-bottom: 1px solid var(--line); }
-  .hrun:last-child { border-bottom: 0; }
-  .hrunhead { display: grid; grid-template-columns: 1fr auto auto; gap: 3px 12px; padding: 11px 16px; cursor: pointer; align-items: start; }
-  .hrunhead .runx { opacity: 0; transition: opacity .12s; }
-  .hrunhead:hover .runx, .hrun[data-open="1"] .runx, .runx:focus-visible { opacity: 1; }
-  .hrunhead .m { grid-column: 1 / -1; }
-  .hrunhead:hover { background: var(--surface-2); }
-  .hrun[data-open="1"] .hrunhead { background: var(--accent-soft); }
-  .hrunhead .t { font: 500 14px/1.4 var(--copy); }
-  .hrunhead .s { font: 600 11px/1.5 var(--mono); text-align: right; white-space: nowrap; }
-  .hrunhead .s.pass { color: var(--pass); }
-  .hrunhead .s.fail { color: var(--fail); }
-  .hrunhead .m { font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
-  .hrunbody { padding: 4px 16px 18px; }
+  .actrow {
+    display: grid; grid-template-columns: 52px 1fr auto auto; gap: 3px 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--line); align-items: center;
+  }
+  .actrow:last-child { border-bottom: 0; }
+  .actrow:hover { background: var(--surface-2); }
+  .actrow .s { font: 700 10.5px/1.5 var(--mono); }
+  .actrow .s.pass { color: var(--pass); }
+  .actrow .s.fail { color: var(--fail); }
+  .actrow .w { font: 500 13.5px/1.4 var(--ui); }
+  .actrow .m { grid-column: 1 / -1; font: 400 11px/1.5 var(--mono); color: var(--ink-3); }
+  .actrow .btn { opacity: 0; transition: opacity .12s; }
+  .actrow:hover .btn, .actrow .btn:focus-visible { opacity: 1; }
+  @media (max-width: 640px) { .actrow .btn { opacity: 1; } }
   .histempty { padding: 14px 16px; color: var(--ink-3); font-size: 13px; }
   .hlocs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0 8px; }
   .hloc {
@@ -366,6 +389,8 @@
 
     <div class="working" id="runWorking"><span class="pulse"></span><span id="runWorkText">Sending the record to Claude…</span></div>
 
+    <ol class="acts" id="runActs"></ol>
+
     <div id="runError" class="offnote hidden" style="border-left-color:var(--fail);background:var(--fail-soft)"></div>
 
     <div id="runResult" class="hidden">
@@ -417,8 +442,8 @@
 
   <details class="hist" id="histPanel">
     <summary>Previous runs</summary>
-    <p class="histmeta">Kept in this browser only — your runs, not your colleagues'. The catalogue
-      is shared; what you tried is yours.</p>
+    <p class="histmeta">What you generated and when, kept in this browser only. The copy itself
+      is saved on the product, where everyone finds it.</p>
     <div class="histlist" id="histList"></div>
   </details>
 
@@ -504,61 +529,106 @@
   const hasWord = (hay, word) => new RegExp("\\b" + escapeRe(norm(word)) + "\\b").test(hay);
   const allText = (c) => [c.title, c.meta_description, c.long_copy].concat(c.bullets || []).join(" ");
 
-  function validate(copy, attrs, locale) {
-    const out = [];
+  /**
+   * Every check, with a line about what it actually looked at. The page can honestly
+   * narrate these — unlike the model call, which is one opaque step — so the wait shows
+   * real work rather than a spinner pretending to be progress.
+   */
+  function runChecks(copy, attrs, locale) {
+    const findings = [];
+    const steps = [];
     const master = locale === "en";
     const regulated = master
       ? (CFG.regulated_terms || {})
       : ((CFG.regulated_terms_by_locale || {})[locale] || {});
     const hay = norm(allText(copy));
     const limits = CFG.limits || {};
+    const before = () => findings.length;
+    const since = (n) => findings.length - n;
 
-    if (!String(copy.title || "").trim()) out.push({ check: "empty_field", detail: "title is empty" });
-    if (!String(copy.long_copy || "").trim()) out.push({ check: "empty_field", detail: "long_copy is empty" });
-    if (!String(copy.meta_description || "").trim()) out.push({ check: "empty_field", detail: "meta_description is empty" });
-    if (!(copy.bullets || []).length) out.push({ check: "empty_field", detail: "no bullets" });
+    let n = before();
+    if (!String(copy.title || "").trim()) findings.push({ check: "empty_field", detail: "title is empty" });
+    if (!String(copy.long_copy || "").trim()) findings.push({ check: "empty_field", detail: "long_copy is empty" });
+    if (!String(copy.meta_description || "").trim()) findings.push({ check: "empty_field", detail: "meta_description is empty" });
+    if (!(copy.bullets || []).length) findings.push({ check: "empty_field", detail: "no bullets" });
+    steps.push({ name: "Fields present", detail: (copy.bullets || []).length + " bullets, title, long copy, meta", bad: since(n) });
 
-    for (const term of Object.keys(regulated)) {
+    n = before();
+    const terms = Object.keys(regulated);
+    for (const term of terms) {
       const backing = regulated[term] || [];
       if (hasWord(hay, term) && !backing.some((b) => b in attrs)) {
-        out.push({ check: "regulated_claim", detail: 'copy says "' + term + '" but the record carries none of: ' + backing.join(", ") });
+        findings.push({ check: "regulated_claim", detail: 'copy says "' + term + '" but the record carries none of: ' + backing.join(", ") });
       }
     }
+    steps.push({
+      name: "Regulated terms",
+      detail: terms.length ? terms.length + " terms checked against the record" : "no term list for this language — check off",
+      bad: since(n), off: !terms.length,
+    });
 
+    n = before();
     const claims = copy.claims || [];
-    if (master && !claims.length) out.push({ check: "claims_missing", detail: "no claims map — copy cannot be traced back to the record" });
+    if (master && !claims.length) findings.push({ check: "claims_missing", detail: "no claims map — copy cannot be traced back to the record" });
     for (const c of claims) {
-      if (!c || typeof c !== "object") { out.push({ check: "claim_malformed", detail: JSON.stringify(c) }); continue; }
+      if (!c || typeof c !== "object") { findings.push({ check: "claim_malformed", detail: JSON.stringify(c) }); continue; }
       if (!(c.attribute in attrs)) {
-        out.push({ check: "claim_unbacked", detail: 'claim "' + c.text + '" cites attribute "' + c.attribute + '" which the record does not have' });
+        findings.push({ check: "claim_unbacked", detail: 'claim "' + c.text + '" cites attribute "' + c.attribute + '" which the record does not have' });
       } else if (c.value != null && !norm(attrs[c.attribute]).includes(norm(c.value)) && !norm(c.value).includes(norm(attrs[c.attribute]))) {
-        out.push({ check: "claim_value_mismatch", detail: 'claim "' + c.text + '" says ' + c.attribute + '="' + c.value + '", record says "' + attrs[c.attribute] + '"' });
-      }
-      /* Master only: the claims map is never translated, so on a variant it would be
-         English text checked against translated copy and every claim would read orphaned. */
-      if (master && c.text && !hay.includes(norm(c.text))) {
-        out.push({ check: "orphan_claim", detail: 'claims map declares "' + c.text + '" but the copy does not say it' });
+        findings.push({ check: "claim_value_mismatch", detail: 'claim "' + c.text + '" says ' + c.attribute + '="' + c.value + '", record says "' + attrs[c.attribute] + '"' });
       }
     }
+    steps.push({ name: "Claims traced", detail: claims.length + " claims checked against " + Object.keys(attrs).length + " attributes", bad: since(n) });
 
-    if (master) for (const w of (CFG.banned_words || [])) {
-      if (hasWord(hay, w)) out.push({ check: "banned_word", detail: 'copy contains banned term "' + w + '"' });
+    n = before();
+    /* Master only: the claims map is never translated, so on a variant it would be English
+       text checked against translated copy and every claim would read orphaned. */
+    if (master) for (const c of claims) {
+      if (c && c.text && !hay.includes(norm(c.text))) {
+        findings.push({ check: "orphan_claim", detail: 'claims map declares "' + c.text + '" but the copy does not say it' });
+      }
     }
+    steps.push({
+      name: "Claims quoted verbatim",
+      detail: master ? "every claim matched against the copy" : "master locale only — check off",
+      bad: since(n), off: !master,
+    });
 
+    n = before();
+    const banned = CFG.banned_words || [];
+    if (master) for (const w of banned) {
+      if (hasWord(hay, w)) findings.push({ check: "banned_word", detail: 'copy contains banned term "' + w + '"' });
+    }
+    steps.push({
+      name: "Banned words",
+      detail: master ? banned.length + " terms checked" : "English list only — check off",
+      bad: since(n), off: !master,
+    });
+
+    n = before();
     if (limits.title && (copy.title || "").length > limits.title) {
-      out.push({ check: "over_limit", detail: "title is " + copy.title.length + " characters, limit " + limits.title });
+      findings.push({ check: "over_limit", detail: "title is " + copy.title.length + " characters, limit " + limits.title });
     }
     if (limits.meta_description && (copy.meta_description || "").length > limits.meta_description) {
-      out.push({ check: "over_limit", detail: "meta description is " + copy.meta_description.length + " characters, limit " + limits.meta_description });
+      findings.push({ check: "over_limit", detail: "meta description is " + copy.meta_description.length + " characters, limit " + limits.meta_description });
     }
     if (limits.bullet) (copy.bullets || []).forEach((b, i) => {
       if (String(b).length > limits.bullet) {
-        out.push({ check: "over_limit", detail: "bullet " + (i + 1) + " is " + String(b).length + " characters, limit " + limits.bullet });
+        findings.push({ check: "over_limit", detail: "bullet " + (i + 1) + " is " + String(b).length + " characters, limit " + limits.bullet });
       }
     });
+    steps.push({
+      name: "Lengths",
+      detail: "title " + (copy.title || "").length + "/" + (limits.title || "—") +
+        ", meta " + (copy.meta_description || "").length + "/" + (limits.meta_description || "—"),
+      bad: since(n),
+    });
 
-    return out;
+    return { findings: findings, steps: steps };
   }
+
+  /** Findings alone, for callers that do not narrate. */
+  function validate(copy, attrs, locale) { return runChecks(copy, attrs, locale).findings; }
 
   function checksOff(locale) {
     if (locale === "en") return [];
@@ -689,6 +759,43 @@
     return "model: " + (name[applied] || applied) + " — your plan could not serve " + (name[asked] || asked);
   }
 
+  /* --------------------------------------------------------------- activity
+     What the page can honestly report. The model call is one opaque step, so it is
+     shown as one; every check after it is real work done here and is narrated as it
+     happens, rather than a spinner standing in for progress. */
+  function actReset() { $("runActs").textContent = ""; }
+
+  function act(name, detail, cls) {
+    const li = document.createElement("li");
+    li.className = cls || "run";
+    const ic = document.createElement("span"); ic.className = "ic";
+    ic.textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : cls === "off" ? "–" : "·";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = name;
+    const dt = document.createElement("span"); dt.className = "dt"; dt.textContent = detail || "";
+    li.append(ic, nm, dt);
+    $("runActs").append(li);
+    return li;
+  }
+
+  function actDone(li, detail, cls) {
+    li.className = cls;
+    li.querySelector(".ic").textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : "–";
+    if (detail != null) li.querySelector(".dt").textContent = detail;
+  }
+
+  /** Let the browser paint between steps, so the log reads as a sequence. */
+  const tick = () => new Promise((r) => setTimeout(r, 90));
+
+  async function narrateChecks(copy, attrs, locale) {
+    const res = runChecks(copy, attrs, locale);
+    for (const s of res.steps) {
+      const li = act(s.name, "…");
+      await tick();
+      actDone(li, s.detail, s.off ? "off" : s.bad ? "bad" : "ok");
+    }
+    return res.findings;
+  }
+
   /* =========================================================== running */
   async function writeFor(product) {
     const sample = state.caps.sample;
@@ -709,6 +816,10 @@
     $("runError").classList.add("hidden");
     $("runWorking").classList.remove("hidden");
     $("runWorkText").textContent = "Sending the record to Claude…";
+    actReset();
+    const aRecord = act("Record read", Object.keys(product.attributes).length + " attributes");
+    actDone(aRecord, Object.keys(product.attributes).length + " attributes", "ok");
+    const aWrite = act("Claude writes the copy", "…");
 
     const prompt = writePrompt(product);
     if (bytes(prompt) > SAMPLE_MAX_PROMPT_BYTES) {
@@ -722,16 +833,27 @@
         onText: () => { $("runWorkText").textContent = "Claude is writing the copy…"; },
       });
       const copy = r.data;
-      const findings = validate(copy, product.attributes, "en");
-      if (r.truncated) findings.push({ check: "truncated", detail: "Claude hit the length limit — the copy may stop mid-thought." });
+      actDone(aWrite, allText(copy).length.toLocaleString() + " characters · " + tierLabel(state.tier, r.applied).replace("model: ", ""), "ok");
+
+      const findings = await narrateChecks(copy, product.attributes, "en");
+      if (r.truncated) {
+        findings.push({ check: "truncated", detail: "Claude hit the length limit — the copy may stop mid-thought." });
+        act("Length limit", "the reply was cut off", "bad");
+      }
       state.result = {
         copy: copy, findings: findings,
         status: findings.length ? "FAIL" : "PASS",
         tier: state.tier, applied: r.applied,
       };
+      act(findings.length ? "Finished with findings" : "Finished clean",
+        findings.length + " finding" + (findings.length === 1 ? "" : "s"),
+        findings.length ? "bad" : "ok");
+
       renderResult();
-      saveHistory();
+      await saveDescription("en");
+      logActivity("en");
     } catch (e) {
+      actDone(aWrite, "failed", "bad");
       fail(sampleErrorCopy(e));
       return;
     } finally {
@@ -755,6 +877,8 @@
     state.busy = true;
     $("runWorking").classList.remove("hidden");
     $("runWorkText").textContent = "Translating into " + name + "…";
+    actReset();
+    const aT = act("Claude translates into " + name, "…");
 
     try {
       const tr = await askJson(translatePrompt(state.product, state.result.copy, name));
@@ -766,15 +890,23 @@
         keywords_used: state.result.copy.keywords_used || [],
         claims: state.result.copy.claims || [],
       };
-      const findings = validate(copy, state.product.attributes, code);
+      actDone(aT, allText(copy).length.toLocaleString() + " characters", "ok");
+
+      const findings = await narrateChecks(copy, state.product.attributes, code);
+      act(findings.length ? "Finished with findings" : "Finished clean",
+        findings.length + " finding" + (findings.length === 1 ? "" : "s"),
+        findings.length ? "bad" : "ok");
+
       state.locales[code] = {
         copy: copy, findings: findings, checksOff: checksOff(code),
         status: findings.length ? "FAIL" : "PASS", label: name,
       };
       state.viewing = code;
       renderResult();
-      saveHistory();
+      await saveDescription(code);
+      logActivity(code);
     } catch (e) {
+      actDone(aT, "failed", "bad");
       showError(sampleErrorCopy(e));
     } finally {
       state.busy = false;
@@ -876,6 +1008,72 @@
 
     $("dlJson").classList.toggle("hidden", !state.caps.downloads);
     $("dlMd").classList.toggle("hidden", !state.caps.downloads);
+  }
+
+  /** One saved description, read-only, inside a product row. */
+  function renderSavedCopy(host, d, code, attrs) {
+    if (!d || !d.copy) return;
+    const limits = CFG.limits || {};
+
+    const v = document.createElement("div");
+    v.className = "verdict";
+    const badge = document.createElement("span");
+    badge.className = "badge " + (d.status === "PASS" ? "pass" : "fail");
+    badge.textContent = d.status;
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.textContent = [
+      (d.findings || []).length ? (d.findings || []).length + " findings" : "clean",
+      tierLabel(d.tier || "complex", d.applied),
+      String(d.at || "").slice(0, 16).replace("T", " "),
+    ].join("  ·  ");
+    v.append(badge, meta);
+    host.append(v);
+
+    if ((d.checksOff || []).length) {
+      const off = document.createElement("div");
+      off.className = "offnote";
+      const b = document.createElement("b"); b.textContent = "Not checked in this language";
+      const q = document.createElement("p"); q.textContent = d.checksOff.join(" · ") + ". Draft pending native review.";
+      off.append(b, q); host.append(off);
+    }
+
+    const block = document.createElement("div");
+    block.className = "copyblock";
+    if (RTL.has(code)) block.setAttribute("dir", "rtl");
+    const ttl = document.createElement("div"); ttl.className = "ttl"; ttl.textContent = d.copy.title || "";
+    const c1 = document.createElement("div");
+    const sp = document.createElement("span"); sp.className = "count";
+    sp.textContent = (d.copy.title || "").length + " / " + (limits.title || "—") + " characters";
+    if (limits.title && (d.copy.title || "").length > limits.title) sp.classList.add("over");
+    c1.append(sp);
+    const ul = document.createElement("ul");
+    for (const b of (d.copy.bullets || [])) { const li = document.createElement("li"); li.textContent = b; ul.append(li); }
+    const lg = document.createElement("p"); lg.className = "long"; lg.textContent = d.copy.long_copy || "";
+    const md = document.createElement("div"); md.className = "metad"; md.textContent = d.copy.meta_description || "";
+    block.append(ttl, c1, ul, lg, md);
+    host.append(block);
+
+    if ((d.findings || []).length) {
+      const fl = document.createElement("ul"); fl.className = "findings";
+      for (const f of d.findings) {
+        const li = document.createElement("li");
+        if (f.check === "over_limit") li.className = "warn";
+        const a = document.createElement("span"); a.className = "c"; a.textContent = f.check;
+        const bb = document.createElement("span"); bb.textContent = f.detail;
+        li.append(a, bb); fl.append(li);
+      }
+      host.append(fl);
+    }
+
+    const cd = document.createElement("details"); cd.className = "sec";
+    const cs = document.createElement("summary"); cs.textContent = "Claims traced";
+    const csc = document.createElement("div"); csc.className = "scroll";
+    const ct = document.createElement("table"); ct.className = "rec";
+    const ctb = document.createElement("tbody");
+    fillClaims(ctb, d.copy.claims || []);
+    ct.append(ctb); csc.append(ct); cd.append(cs, csc);
+    host.append(cd);
   }
 
   function fillClaims(host, claims) {
@@ -1040,6 +1238,46 @@
     const tb = document.createElement("tbody");
     fillRecord(tb, p.attributes);
     tbl.append(tb); sc.append(tbl); body.append(sc);
+
+    /* Whatever has already been written for this product, in every language. */
+    const saved = document.createElement("div");
+    saved.className = "saved";
+    const savedHead = document.createElement("div");
+    savedHead.className = "eyebrow";
+    savedHead.textContent = "Description";
+    saved.append(savedHead);
+
+    const bar = document.createElement("div");
+    bar.className = "savedbar";
+    const pane = document.createElement("div");
+    const descs = p.descriptions || {};
+    const codes = Object.keys(descs);
+
+    if (!codes.length) {
+      const none = document.createElement("span");
+      none.className = "none";
+      none.textContent = "Not written yet.";
+      bar.append(none);
+    } else {
+      let showing = codes.includes("en") ? "en" : codes[0];
+      const drawSaved = () => {
+        for (const b of bar.querySelectorAll(".hloc")) b.setAttribute("aria-pressed", String(b.dataset.code === showing));
+        pane.textContent = "";
+        renderSavedCopy(pane, descs[showing], showing, p.attributes);
+      };
+      for (const code of codes) {
+        const b = document.createElement("button");
+        b.className = "hloc";
+        b.dataset.code = code;
+        b.textContent = (descs[code].label || code) + (descs[code].status === "PASS" ? "" : " ✕");
+        b.addEventListener("click", () => { showing = code; drawSaved(); });
+        bar.append(b);
+      }
+      saved.append(bar, pane);
+      drawSaved();
+      body.append(saved);
+    }
+    if (!codes.length) { saved.append(bar); body.append(saved); }
 
     const act = document.createElement("div");
     act.className = "actions";
@@ -1443,6 +1681,55 @@
     $("ownExtra").append(row);
   }
 
+  /* --------------------------------------------- descriptions on the product
+     A description belongs to the product, not to whoever happened to generate it:
+     the next person opening that row should find the copy already there, in every
+     language it has been done in. So it is saved onto the shared record. */
+  function descKey(sku) {
+    return sku.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+  }
+
+  async function saveDescription(code) {
+    const db = state.caps.db;
+    if (!db || !state.product || !state.result) return;
+    const v = code === "en" ? state.result : state.locales[code];
+    if (!v) return;
+
+    const entry = {
+      copy: v.copy,
+      status: v.status,
+      findings: v.findings,
+      checksOff: v.checksOff || [],
+      label: v.label || "English",
+      tier: state.result.tier,
+      applied: state.result.applied || state.result.tier,
+      at: new Date().toISOString(),
+    };
+
+    const id = descKey(state.product.sku);
+    const existing = state.products.find((x) => x.sku === state.product.sku) || {};
+    const descriptions = Object.assign({}, existing.descriptions || {});
+    descriptions[code] = entry;
+
+    try {
+      await db.doc("products/" + id).set({
+        sku: state.product.sku,
+        category: state.product.category,
+        attributes: state.product.attributes,
+        invented: !!existing.invented,
+        descriptions: descriptions,
+        at: existing.at || new Date().toISOString(),
+      });
+      state.products = state.products.filter((x) => x.sku !== state.product.sku);
+      state.products.unshift({
+        sku: state.product.sku, category: state.product.category,
+        attributes: state.product.attributes, invented: !!existing.invented,
+        descriptions: descriptions,
+      });
+      renderCatalogue();
+    } catch { /* the copy on screen is still the deliverable */ }
+  }
+
   /* =========================================================== history
      localStorage, not db: these are one person's drafts and attempts. The catalogue is
      shared because a product record is the same record for everyone; what you tried on
@@ -1454,38 +1741,36 @@
     } catch { state.history = []; }
   }
 
-  function saveHistory() {
-    if (!state.result) return;
-    const entry = {
+  /**
+   * An activity line per description, not a copy of it. The copy itself now lives on the
+   * product where the next person will look for it; this is only a record of what you did
+   * and when, so it stays small and stays local.
+   */
+  function logActivity(code) {
+    if (!state.product || !state.result) return;
+    const v = code === "en" ? state.result : state.locales[code];
+    if (!v) return;
+    state.history.unshift({
       at: new Date().toISOString(),
       sku: state.product.sku,
       category: state.product.category,
-      attributes: state.product.attributes,
+      attrs: Object.keys(state.product.attributes).length,
+      language: code === "en" ? "English" : (v.label || code),
+      status: v.status,
+      findings: (v.findings || []).length,
+      claims: (state.result.copy.claims || []).length,
       tier: state.result.tier,
       applied: state.result.applied || state.result.tier,
-      status: state.result.status,
-      findings: state.result.findings,
-      copy: state.result.copy,
-      locales: {},
-    };
-    for (const code of Object.keys(state.locales)) {
-      const L = state.locales[code];
-      entry.locales[code] = { label: L.label, status: L.status, findings: L.findings, checksOff: L.checksOff, copy: L.copy };
-    }
-    /* Replace the entry this run already wrote rather than adding one per translation. */
-    if (state.history.length && state.history[0].sku === entry.sku && state.history[0].runId === state.runId) {
-      state.history.shift();
-    }
-    entry.runId = state.runId;
-    state.history.unshift(entry);
+      id: state.runId + ":" + code,
+    });
     state.history = state.history.slice(0, HISTORY_MAX);
     try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
-    catch { /* quota or blocked storage — the result on screen still stands */ }
+    catch { /* quota or blocked storage — the copy is on the product either way */ }
     if ($("histPanel").open) renderHistory();
   }
 
-  function deleteRun(runId, at) {
-    state.history = state.history.filter((h) => !(h.runId === runId && h.at === at));
+  function deleteRun(id) {
+    state.history = state.history.filter((h) => h.id !== id);
     try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
     catch { /* nothing to do */ }
     renderHistory();
@@ -1497,163 +1782,56 @@
     if (!state.history.length) {
       const p = document.createElement("div");
       p.className = "histempty";
-      p.textContent = "Nothing yet. Every description you generate is kept here in full — the copy, the claims map, the findings and any translations.";
+      p.textContent = "Nothing yet. Each description you generate is logged here — the copy itself is saved on the product.";
       host.append(p);
       return;
     }
 
     for (const h of state.history) {
-      const wrap = document.createElement("div");
-      wrap.className = "hrun";
-      wrap.dataset.open = "0";
-
-      const head = document.createElement("div");
-      head.className = "hrunhead";
-      head.setAttribute("role", "button");
-      head.tabIndex = 0;
-
-      const t = document.createElement("span");
-      t.className = "t";
-      t.textContent = (h.copy && h.copy.title) || "(untitled)";
+      const row = document.createElement("div");
+      row.className = "actrow";
 
       const s = document.createElement("span");
       s.className = "s " + (h.status === "PASS" ? "pass" : "fail");
-      s.textContent = h.status + (h.findings && h.findings.length ? " · " + h.findings.length : "");
+      s.textContent = h.status;
+
+      const w = document.createElement("span");
+      w.className = "w";
+      w.textContent = h.sku + " · " + h.language;
+
+      const m = document.createElement("span");
+      m.className = "m";
+      m.textContent = [
+        h.category,
+        h.attrs + " attributes",
+        h.claims + " claims",
+        h.findings ? h.findings + " findings" : "clean",
+        tierLabel(h.tier || "complex", h.applied).replace("model: ", ""),
+        String(h.at).slice(0, 16).replace("T", " "),
+      ].join("  ·  ");
+
+      const open = document.createElement("button");
+      open.className = "btn sm";
+      open.textContent = "Open";
+      open.title = "Show this product in the catalogue";
+      open.addEventListener("click", () => { $("tabCat").click(); openProduct(h.sku); });
 
       const del = document.createElement("button");
-      del.className = "btn sm runx";
+      del.className = "btn sm";
       del.textContent = "Delete";
-      del.title = "Remove this run from your history";
-      del.addEventListener("click", (e) => {
-        e.stopPropagation();
+      del.addEventListener("click", () => {
         if (del.dataset.armed !== "1") {
           del.dataset.armed = "1";
           del.textContent = "Click again";
           setTimeout(() => { del.dataset.armed = "0"; del.textContent = "Delete"; }, 4000);
           return;
         }
-        deleteRun(h.runId, h.at);
+        deleteRun(h.id);
       });
 
-      const locs = Object.keys(h.locales || {});
-      const m = document.createElement("span");
-      m.className = "m";
-      m.textContent = [
-        h.sku, h.category,
-        String(h.at).slice(0, 16).replace("T", " "),
-        (h.copy && h.copy.claims ? h.copy.claims.length : 0) + " claims",
-        tierLabel(h.tier || "complex", h.applied),
-        locs.length ? "+ " + locs.map((c) => (h.locales[c].label || c)).join(", ") : "English only",
-      ].join("  ·  ");
-
-      head.append(t, s, m, del);
-
-      const body = document.createElement("div");
-      body.className = "hrunbody hidden";
-
-      const toggle = () => {
-        const open = wrap.dataset.open === "1";
-        wrap.dataset.open = open ? "0" : "1";
-        body.classList.toggle("hidden", open);
-        if (!open && !body.dataset.built) { buildHistBody(body, h); body.dataset.built = "1"; }
-      };
-      head.addEventListener("click", toggle);
-      head.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
-
-      wrap.append(head, body);
-      host.append(wrap);
+      row.append(s, w, open, del, m);
+      host.append(row);
     }
-  }
-
-  function buildHistBody(body, h) {
-    const langs = ["en"].concat(Object.keys(h.locales || {}));
-    let showing = "en";
-
-    const bar = document.createElement("div");
-    bar.className = "hlocs";
-    const pane = document.createElement("div");
-
-    const draw = () => {
-      for (const b of bar.querySelectorAll(".hloc")) b.setAttribute("aria-pressed", String(b.dataset.code === showing));
-      pane.textContent = "";
-      const v = showing === "en"
-        ? { copy: h.copy, findings: h.findings || [], checksOff: [] }
-        : h.locales[showing];
-      if (!v || !v.copy) return;
-
-      const block = document.createElement("div");
-      block.className = "copyblock";
-      if (RTL.has(showing)) block.setAttribute("dir", "rtl");
-      const ttl = document.createElement("div"); ttl.className = "ttl"; ttl.textContent = v.copy.title || "";
-      const ul = document.createElement("ul");
-      for (const b of (v.copy.bullets || [])) { const li = document.createElement("li"); li.textContent = b; ul.append(li); }
-      const lg = document.createElement("p"); lg.className = "long"; lg.textContent = v.copy.long_copy || "";
-      const md = document.createElement("div"); md.className = "metad"; md.textContent = v.copy.meta_description || "";
-      block.append(ttl, ul, lg, md);
-      pane.append(block);
-
-      if ((v.checksOff || []).length) {
-        const off = document.createElement("div");
-        off.className = "offnote";
-        const b = document.createElement("b"); b.textContent = "Not checked in this language";
-        const p = document.createElement("p"); p.textContent = v.checksOff.join(" · ") + ". Draft pending native review.";
-        off.append(b, p); pane.append(off);
-      }
-
-      if ((v.findings || []).length) {
-        const h4 = document.createElement("h4");
-        h4.style.cssText = "font-size:13.5px;margin:14px 0 7px";
-        h4.textContent = "Findings";
-        const fl = document.createElement("ul"); fl.className = "findings";
-        for (const f of v.findings) {
-          const li = document.createElement("li");
-          if (f.check === "over_limit") li.className = "warn";
-          const a = document.createElement("span"); a.className = "c"; a.textContent = f.check;
-          const bb = document.createElement("span"); bb.textContent = f.detail;
-          li.append(a, bb); fl.append(li);
-        }
-        pane.append(h4, fl);
-      }
-
-      /* The claims map is the deliverable, not an appendix — it is what makes the copy
-         checkable, so it shows for every language (untranslated, as the skill requires). */
-      const cd = document.createElement("details"); cd.className = "sec"; cd.open = true;
-      const cs = document.createElement("summary"); cs.textContent = "Claims traced";
-      const csc = document.createElement("div"); csc.className = "scroll";
-      const ct = document.createElement("table"); ct.className = "rec";
-      const cth = document.createElement("thead");
-      const ctr = document.createElement("tr");
-      for (const label of ["Statement in the copy", "Attribute", "Value"]) {
-        const th = document.createElement("th"); th.textContent = label; ctr.append(th);
-      }
-      cth.append(ctr);
-      const ctb = document.createElement("tbody");
-      fillClaims(ctb, (h.copy && h.copy.claims) || []);
-      ct.append(cth, ctb); csc.append(ct); cd.append(cs, csc);
-      pane.append(cd);
-
-      const rd = document.createElement("details"); rd.className = "sec";
-      const rs = document.createElement("summary"); rs.textContent = "Source record";
-      const rsc = document.createElement("div"); rsc.className = "scroll";
-      const rt = document.createElement("table"); rt.className = "rec";
-      const rtb = document.createElement("tbody");
-      fillRecord(rtb, h.attributes || {});
-      rt.append(rtb); rsc.append(rt); rd.append(rs, rsc);
-      pane.append(rd);
-
-    };
-
-    for (const code of langs) {
-      const b = document.createElement("button");
-      b.className = "hloc";
-      b.dataset.code = code;
-      b.textContent = code === "en" ? "English" : ((h.locales[code] && h.locales[code].label) || code);
-      b.addEventListener("click", () => { showing = code; draw(); });
-      bar.append(b);
-    }
-
-    body.append(bar, pane);
-    draw();
   }
 
   /* =========================================================== downloads */

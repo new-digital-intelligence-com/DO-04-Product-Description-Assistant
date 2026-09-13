@@ -119,21 +119,40 @@ others are offered with a dashed border and run with that check off.
 
 ## What is shared and what is yours
 
-Two stores, split on a real distinction:
-
 | | Where | Who sees it |
 |---|---|---|
-| **Products** | artifact `db` | everyone who opens the page |
-| **Your runs** | `localStorage` | only you, only this browser |
+| **Products** | artifact `db` | everyone |
+| **Their descriptions**, in every language | on the product, in `db` | everyone |
+| **Your activity log** | `localStorage` | only you, this browser |
 | Model choice | `localStorage` | only you |
 
-A product record is the same record for everyone — one person adding the missing
-`sole_material` fixes it for the whole team. What you *tried* on it is not: drafts, rejected
-attempts and the notes you gave Claude are yours, and putting them in a shared list would turn
-a working surface into a performance review.
+A description belongs to the **product**, not to whoever happened to generate it. Open a
+product and the copy is there, with a tab per language — the next person does not regenerate
+what a colleague already wrote and paid for.
 
-Run history keeps everything: the record, the note, the model, the copy, the claims map, the
-findings, and every translation. Capped at 25 entries; clearing site data clears it.
+What stays local is only the log of what *you* did: one line per description, with the SKU,
+the language, the verdict, the claim count and the model. No copy — that is on the product.
+Each line has **Open** (jumps to that product) and **Delete**. Capped at 25.
+
+## The wait is narrated
+
+The model call is one opaque step, so the page shows it as one. Everything after it is real
+work done in the page, and is reported as it happens:
+
+```
+✓ Record read                 10 attributes
+✓ Claude writes the copy      1,284 characters · most capable
+✓ Fields present              5 bullets, title, long copy, meta
+✓ Regulated terms             13 terms checked against the record
+✓ Claims traced               6 claims checked against 10 attributes
+✓ Claims quoted verbatim      every claim matched against the copy
+✓ Banned words                12 terms checked
+✕ Lengths                     title 74/70, meta 149/160
+✕ Finished with findings      1 finding
+```
+
+On a translation the language-specific checks report themselves as off (`–`) rather than
+passing silently, which is what the skill requires be said out loud.
 
 ## Remembered categories
 
