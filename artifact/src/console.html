@@ -128,6 +128,15 @@
   .dot.warn { background: var(--warn); }
   .status .spacer { flex: 1; }
   .status .note { color: var(--ink-3); font-size: 12.5px; }
+  .tierpick { display: flex; align-items: center; gap: 8px; }
+  .tierpick select {
+    font: 400 12.5px/1.3 var(--ui); padding: 5px 8px;
+    border: 1px solid var(--line-2); border-radius: 3px;
+    background: var(--surface); color: var(--ink);
+  }
+  .tiernote {
+    margin: -14px 0 22px; font-size: 12.5px; color: var(--ink-3); max-width: 70ch;
+  }
 
   /* ---- panels ---- */
   .panel {
@@ -319,8 +328,16 @@
     <div class="item"><span class="dot" id="dotDb"></span><span id="txtDb">Checking history…</span></div>
     <div class="item"><span class="dot" id="dotDl"></span><span id="txtDl">Checking downloads…</span></div>
     <div class="spacer"></div>
-    <span class="note">No connectors needed — this assistant calls nothing outside Claude.</span>
+    <label class="tierpick">
+      <span class="eyebrow">Model</span>
+      <select id="tierSel">
+        <option value="complex">Complex — thinks longest</option>
+        <option value="default">Default — balanced</option>
+        <option value="quick">Quick — no thinking, fastest</option>
+      </select>
+    </label>
   </section>
+  <p class="tiernote" id="tierNote"></p>
 
   <div class="tabs">
     <button class="tab" id="tabCat" aria-selected="true">Sample catalogue</button>
@@ -477,7 +494,33 @@
     /* Category NAMES people have used that the config does not know. Only the names:
        a required-attribute list invented here would be schema living outside the skill. */
     customCats: [],
+    /* The viewer's own choice of how hard Claude should think. A per-viewer
+       convenience, so localStorage rather than db — and wrapped, because the
+       accessor itself throws in some contexts. */
+    tier: "complex",
   };
+
+  const TIER_NOTE = {
+    complex: "Complex: the most capable model. Slowest, and the right default here — grounding copy and building a correct claims map is the hard part.",
+    default: "Default: the balanced model. Noticeably faster, and usually fine for a simple record with few attributes.",
+    quick: "Quick: fastest, and it does not think before writing. Expect weaker grounding and more findings — useful for a rough draft, not for copy you intend to ship.",
+  };
+
+  function loadTier() {
+    try {
+      const v = localStorage.getItem("do04.tier");
+      if (v && TIER_NOTE[v]) state.tier = v;
+    } catch { /* private window, blocked storage — the default stands */ }
+    $("tierSel").value = state.tier;
+    $("tierNote").textContent = TIER_NOTE[state.tier];
+  }
+
+  function setTier(v) {
+    if (!TIER_NOTE[v]) return;
+    state.tier = v;
+    $("tierNote").textContent = TIER_NOTE[v];
+    try { localStorage.setItem("do04.tier", v); } catch { /* nothing to do */ }
+  }
 
   /* ===================================================================
      The validator. Ported from lib/validate.ts, and deliberately NOT a
@@ -702,13 +745,13 @@
 
     try {
       const copy = await sample.json(prompt, {
-        modelTier: "complex",
+        modelTier: state.tier,
         cache: false,
         onText: () => { $("runWorkText").textContent = "Claude is writing the copy…"; },
       });
       if (gate(product.category, product.attributes).unknown) rememberCategory(product.category);
       const findings = validate(copy, product.attributes, "en");
-      state.result = { copy: copy, findings: findings, status: findings.length ? "FAIL" : "PASS" };
+      state.result = { copy: copy, findings: findings, status: findings.length ? "FAIL" : "PASS", tier: state.tier };
       renderResult();
       saveRun();
     } catch (e) {
@@ -731,7 +774,7 @@
 
     try {
       const t = await sample.json(translatePrompt(state.product, state.result.copy, locale), {
-        modelTier: "complex",
+        modelTier: state.tier,
         cache: false,
       });
       /* The claims map travels untranslated, so the variant keeps the master's. */
@@ -804,9 +847,10 @@
     const badge = $("verdictBadge");
     badge.textContent = v.status;
     badge.className = "badge " + (v.status === "PASS" ? "pass" : "fail");
-    $("verdictMeta").textContent = v.findings.length
-      ? v.findings.length + " finding" + (v.findings.length === 1 ? "" : "s")
-      : "every check that could run, passed";
+    $("verdictMeta").textContent = [
+      v.findings.length ? v.findings.length + " finding" + (v.findings.length === 1 ? "" : "s") : "every check that could run, passed",
+      "model: " + (state.result.tier || "complex"),
+    ].join("  ·  ");
 
     renderLocaleBar();
 
@@ -1163,6 +1207,7 @@
         status: state.result.status,
         findings: state.result.findings.length,
         claims: (state.result.copy.claims || []).length,
+        tier: state.result.tier || "complex",
         attributes: state.product.attributes,
         copy: state.result.copy,
         allFindings: state.result.findings,
@@ -1313,6 +1358,7 @@
     $("paneCat").classList.add("hidden");
   });
 
+  $("tierSel").addEventListener("change", (e) => setTier(e.target.value));
   $("ownCat").addEventListener("change", renderOwnSchema);
   $("ownSku").addEventListener("input", updateOwnGate);
   $("addExtra").addEventListener("click", addExtraRow);
@@ -1338,6 +1384,7 @@
 
   $("histPanel").addEventListener("toggle", () => { if ($("histPanel").open) loadHistory(); });
 
+  loadTier();
   renderCatalogue();
   renderOwnForm();
   addExtraRow();

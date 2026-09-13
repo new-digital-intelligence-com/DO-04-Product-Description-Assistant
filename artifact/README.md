@@ -125,6 +125,26 @@ If that becomes wrong (product copy is rarely sensitive, but a pre-announcement 
 add `db: { rules: [...] }` at publish time. The GP-01 repo's `mcp-manifest.json` carries a worked
 example.
 
+## Choosing the model
+
+The page does not pick a model; it asks for a **tier**, and the platform decides which model
+serves it. The picker in the status strip offers all three, remembered per viewer in
+`localStorage`:
+
+| Tier | |
+|---|---|
+| `complex` | most capable, thinks longest — the default here, because grounding and a correct claims map is the hard part |
+| `default` | balanced, noticeably faster |
+| `quick` | fastest, **does not think first** — weaker grounding, more findings |
+
+The tier is recorded on every run and shown beside the verdict, so a batch written on `quick`
+is identifiable afterwards rather than being blamed on the skill.
+
+One limitation: the platform serves a nearby cheaper tier when the viewer's plan lacks the one
+asked for, and reports that on `modelTierApplied` — which `sample.json()` does not return, only
+`sample()` does. So this page shows the tier **requested**, not the one applied. (The GP-01
+console uses `sample()` and does surface the difference.)
+
 ## Remembered categories
 
 The config knows `footwear`, `outerwear` and `accessories`. When someone writes copy for a
