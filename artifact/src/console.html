@@ -186,6 +186,30 @@
   .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: .25 } 50% { opacity: 1 } }
 
+  /* ---- a run, inside the product row ---- */
+  .work {
+    margin-top: 16px; padding: 14px 16px;
+    background: var(--surface-2); border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+  }
+  .workhead { display: flex; align-items: center; gap: 9px; font: 500 13px/1.4 var(--ui); margin-bottom: 10px; }
+  .workhead.finished { color: var(--ink-2); margin-bottom: 0; }
+  .acts.quiet { opacity: .55; }
+  .stream { margin-top: 10px; }
+  .stream > summary { cursor: pointer; font: 500 11.5px/1 var(--ui); color: var(--ink-3); padding: 5px 0; }
+  .stream pre {
+    margin: 6px 0 0; padding: 10px 12px; max-height: 170px; overflow: auto;
+    background: var(--surface); border-radius: 3px;
+    font: 400 11px/1.6 var(--mono); color: var(--ink-3);
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+
+  .controls { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .controls .actions { margin-top: 0; }
+  .translate { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-top: 14px; }
+  .translate .eyebrow { padding-top: 6px; }
+  .translate .locbar { margin: 0; flex: 1; }
+
   /* ---- snapshot modal ---- */
   .modal {
     position: fixed; inset: 0; z-index: 50;
@@ -399,66 +423,6 @@
       <button class="btn hidden" id="ownCancel">Cancel edit</button>
       <button class="btn" id="ownFill">Fill with Claude</button>
       <button class="btn primary" id="ownSave">Save to catalogue</button>
-    </div>
-  </section>
-
-  <!-- ---------- run + result ---------- -->
-  <section class="panel hidden" id="paneRun">
-    <header>
-      <span class="eyebrow" id="runSku"></span>
-      <h2 id="runTitle">Writing…</h2>
-    </header>
-
-    <div class="working" id="runWorking"><span class="pulse"></span><span id="runWorkText">Sending the record to Claude…</span></div>
-
-    <ol class="acts" id="runActs"></ol>
-
-    <div id="runError" class="offnote hidden" style="border-left-color:var(--fail);background:var(--fail-soft)"></div>
-
-    <div id="runResult" class="hidden">
-      <div class="verdict">
-        <span class="badge" id="verdictBadge">—</span>
-        <span class="meta" id="verdictMeta"></span>
-      </div>
-
-      <div class="locbar" id="locBar"></div>
-
-      <div class="offnote hidden" id="checksOffNote"></div>
-
-      <div class="copyblock" id="copyBlock">
-        <div class="ttl" id="outTitle"></div>
-        <div><span class="count" id="cntTitle"></span></div>
-        <ul id="outBullets"></ul>
-        <p class="long" id="outLong"></p>
-        <div class="metad" id="outMeta"></div>
-        <div><span class="count" id="cntMeta"></span></div>
-      </div>
-
-      <h4 style="font-size:14px;margin-bottom:8px">Findings</h4>
-      <ul class="findings" id="outFindings"></ul>
-      <p id="noFindings" class="lede hidden">Every check that could run, passed.</p>
-
-      <details class="sec" open>
-        <summary>Claims traced</summary>
-        <div class="scroll">
-          <table class="rec">
-            <thead><tr><th>Statement in the copy</th><th>Attribute</th><th>Value</th></tr></thead>
-            <tbody id="outClaims"></tbody>
-          </table>
-        </div>
-      </details>
-
-      <details class="sec">
-        <summary>Source record</summary>
-        <div class="scroll"><table class="rec"><tbody id="outRecord"></tbody></table></div>
-      </details>
-
-      <div class="actions">
-        <button class="btn" id="dlJson">Download JSON</button>
-        <button class="btn" id="dlMd">Download Markdown</button>
-        <div class="spacer"></div>
-        <button class="btn" id="againBtn">Back to the catalogue</button>
-      </div>
     </div>
   </section>
 
@@ -794,284 +758,181 @@
     return "model: " + (name[applied] || applied) + " — your plan could not serve " + (name[asked] || asked);
   }
 
-  /* --------------------------------------------------------------- activity
-     What the page can honestly report. The model call is one opaque step, so it is
-     shown as one; every check after it is real work done here and is narrated as it
-     happens, rather than a spinner standing in for progress. */
-  function actReset() { $("runActs").textContent = ""; }
-
-  function act(name, detail, cls) {
-    const li = document.createElement("li");
-    li.className = cls || "run";
-    const ic = document.createElement("span"); ic.className = "ic";
-    ic.textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : cls === "off" ? "–" : "·";
-    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = name;
-    const dt = document.createElement("span"); dt.className = "dt"; dt.textContent = detail || "";
-    li.append(ic, nm, dt);
-    $("runActs").append(li);
-    return li;
-  }
-
-  function actDone(li, detail, cls) {
-    li.className = cls;
-    li.querySelector(".ic").textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : "–";
-    if (detail != null) li.querySelector(".dt").textContent = detail;
-  }
-
-  /** Let the browser paint between steps, so the log reads as a sequence. */
-  const tick = () => new Promise((r) => setTimeout(r, 90));
-
-  async function narrateChecks(copy, attrs, locale) {
-    const res = runChecks(copy, attrs, locale);
-    for (const s of res.steps) {
-      const li = act(s.name, "…");
-      await tick();
-      actDone(li, s.detail, s.off ? "off" : s.bad ? "bad" : "ok");
-    }
-    return res.findings;
-  }
-
   /* =========================================================== running */
-  async function writeFor(product) {
+  /**
+   * One run, rendered where it was started. Everything begins from a product row now, so
+   * the work stays in that row: the steps, Claude's reply as it streams, and then the
+   * description itself refreshed in place. Nothing scrolls away to a panel somewhere else.
+   *
+   * `ctx` is the row's own handles: {product, work, refresh}.
+   */
+  async function runFor(ctx, mode, label) {
     const sample = state.caps.sample;
     if (!sample || state.busy) return;
+    const p = ctx.product;
 
-    state.product = product;
-    state.result = null;
-    state.locales = {};
-    state.viewing = "en";
-    state.busy = true;
-    state.runId = String(Date.now());
+    /* A translation needs the approved English master to translate FROM — the skill is
+       explicit that a variant is never written from scratch in the target language. */
+    const master = mode === "translate" ? (p.descriptions || {}).en : null;
+    if (mode === "translate" && (!master || !master.copy)) return;
 
-    $("paneRun").classList.remove("hidden");
-    $("runSku").textContent = product.sku + " · " + product.category;
-    $("paneRun").scrollIntoView({ behavior: "smooth", block: "start" });
-    $("runTitle").textContent = "Writing…";
-    $("runResult").classList.add("hidden");
-    $("runError").classList.add("hidden");
-    $("runWorking").classList.remove("hidden");
-    $("runWorkText").textContent = "Sending the record to Claude…";
-    actReset();
-    const aRecord = act("Record read", Object.keys(product.attributes).length + " attributes");
-    actDone(aRecord, Object.keys(product.attributes).length + " attributes", "ok");
-    const aWrite = act("Claude writes the copy", "…");
-
-    const prompt = writePrompt(product);
-    if (bytes(prompt) > SAMPLE_MAX_PROMPT_BYTES) {
-      fail("The skill and this record come to " + bytes(prompt).toLocaleString() +
-        " bytes, over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit.");
-      return;
+    let code = "en", name = "English";
+    if (mode === "translate") {
+      const typed = String(label).trim();
+      if (!typed) return;
+      code = LANG_CODES[typed.toLowerCase()] ||
+        typed.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "other";
+      name = LANG_NAMES[code] || typed;
     }
 
-    try {
-      const r = await askJson(prompt, {
-        onText: () => { $("runWorkText").textContent = "Claude is writing the copy…"; },
-      });
-      const copy = r.data;
-      actDone(aWrite, allText(copy).length.toLocaleString() + " characters · " + tierLabel(state.tier, r.applied).replace("model: ", ""), "ok");
+    state.busy = true;
+    state.product = { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) };
+    state.runId = String(Date.now());
+    ctx.setBusy(true);
 
-      const findings = await narrateChecks(copy, product.attributes, "en");
+    const w = openWork(ctx.work, mode === "translate" ? "Translating into " + name : "Writing the description");
+    const aRec = w.step("Record read", Object.keys(p.attributes).length + " attributes");
+    w.done(aRec, Object.keys(p.attributes).length + " attributes", "ok");
+    const aWrite = w.step(mode === "translate" ? "Claude translates" : "Claude writes the copy", "thinking…");
+
+    try {
+      const prompt = mode === "translate"
+        ? translatePrompt(state.product, master.copy, name)
+        : writePrompt(state.product);
+
+      if (bytes(prompt) > SAMPLE_MAX_PROMPT_BYTES) {
+        w.done(aWrite, "the prompt is over the " + SAMPLE_MAX_PROMPT_BYTES.toLocaleString() + "-byte limit", "bad");
+        return;
+      }
+
+      const r = await askJson(prompt, { onText: ({ text }) => w.stream(text) });
+      const data = r.data;
+
+      const copy = mode === "translate"
+        ? {
+            title: data.title, bullets: data.bullets,
+            long_copy: data.long_copy, meta_description: data.meta_description,
+            /* The claims map travels untranslated — traceability points at the record,
+               and a record has no language. */
+            keywords_used: master.copy.keywords_used || [],
+            claims: master.copy.claims || [],
+          }
+        : data;
+
+      w.done(aWrite, allText(copy).length.toLocaleString() + " characters · " +
+        tierLabel(state.tier, r.applied).replace("model: ", ""), "ok");
+      w.endStream();
+
+      const findings = await w.checks(copy, p.attributes, code);
       if (r.truncated) {
         findings.push({ check: "truncated", detail: "Claude hit the length limit — the copy may stop mid-thought." });
-        act("Length limit", "the reply was cut off", "bad");
+        w.done(w.step("Length limit", ""), "the reply was cut off", "bad");
       }
-      state.result = {
-        copy: copy, findings: findings,
-        status: findings.length ? "FAIL" : "PASS",
-        tier: state.tier, applied: r.applied,
+
+      const entry = {
+        copy: copy, status: findings.length ? "FAIL" : "PASS",
+        findings: findings, checksOff: checksOff(code), label: name,
+        tier: state.tier, applied: r.applied, at: new Date().toISOString(),
       };
-      act(findings.length ? "Finished with findings" : "Finished clean",
+
+      w.done(w.step(findings.length ? "Finished with findings" : "Finished clean", ""),
         findings.length + " finding" + (findings.length === 1 ? "" : "s"),
         findings.length ? "bad" : "ok");
 
-      renderResult();
-      await saveDescription("en");
-      logActivity("en");
+      await saveDescription(p, code, entry);
+      logActivity(p, code, entry);
+      ctx.refresh(code);
+      w.collapse(entry.status + " · " + (findings.length || "no") + " findings · " + name);
     } catch (e) {
-      actDone(aWrite, "failed", "bad");
-      fail(sampleErrorCopy(e));
-      return;
+      w.done(aWrite, "failed", "bad");
+      w.endStream();
+      w.error(sampleErrorCopy(e));
     } finally {
       state.busy = false;
-      $("runWorking").classList.add("hidden");
+      ctx.setBusy(false);
     }
   }
 
-  /**
-   * Translate a product that already has a saved English master, without regenerating it.
-   * Hydrates the run state from what is stored, then reuses the ordinary path — so the
-   * variant is a translation of the approved master, which is what the skill requires.
-   */
-  function translateProduct(p, label) {
-    const en = (p.descriptions || {}).en;
-    if (!en || !en.copy) return;
-    state.product = { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) };
-    state.result = {
-      copy: en.copy, findings: en.findings || [], status: en.status,
-      tier: en.tier || state.tier, applied: en.applied,
+  /** The work area inside one product row: steps, the live reply, and a tidy end state. */
+  function openWork(host, title) {
+    host.textContent = "";
+    host.classList.remove("hidden");
+
+    const head = document.createElement("div");
+    head.className = "workhead";
+    const pulse = document.createElement("span"); pulse.className = "pulse";
+    const label = document.createElement("span"); label.textContent = title;
+    head.append(pulse, label);
+
+    const steps = document.createElement("ol");
+    steps.className = "acts";
+
+    const streamWrap = document.createElement("details");
+    streamWrap.className = "stream hidden";
+    const streamSum = document.createElement("summary");
+    streamSum.textContent = "Claude's reply as it arrives";
+    const pre = document.createElement("pre");
+    streamWrap.append(streamSum, pre);
+
+    host.append(head, steps, streamWrap);
+
+    const mk = (name, detail, cls) => {
+      const li = document.createElement("li");
+      li.className = cls || "run";
+      const ic = document.createElement("span"); ic.className = "ic";
+      ic.textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : cls === "off" ? "–" : "·";
+      const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = name;
+      const dt = document.createElement("span"); dt.className = "dt"; dt.textContent = detail || "";
+      li.append(ic, nm, dt);
+      steps.append(li);
+      return li;
     };
-    state.locales = {};
-    for (const code of Object.keys(p.descriptions || {})) {
-      if (code === "en") continue;
-      const d = p.descriptions[code];
-      state.locales[code] = { copy: d.copy, findings: d.findings || [], checksOff: d.checksOff || [], status: d.status, label: d.label || code };
-    }
-    state.viewing = "en";
-    state.runId = String(Date.now());
-    $("paneRun").classList.remove("hidden");
-    $("runSku").textContent = p.sku + " · " + p.category;
-    $("runResult").classList.remove("hidden");
-    $("runError").classList.add("hidden");
-    renderResult();
-    translateTo(label);
-  }
+    const fin = (li, detail, cls) => {
+      li.className = cls;
+      li.querySelector(".ic").textContent = cls === "ok" ? "✓" : cls === "bad" ? "✕" : "–";
+      if (detail != null) li.querySelector(".dt").textContent = detail;
+    };
+    const tick = () => new Promise((r) => setTimeout(r, 90));
 
-  async function translateTo(label) {
-    const sample = state.caps.sample;
-    if (!sample || state.busy || !state.result) return;
-
-    const typed = String(label).trim();
-    if (!typed) return;
-    const code = LANG_CODES[typed.toLowerCase()] ||
-      typed.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "other";
-    const name = LANG_NAMES[code] || typed;
-
-    if (state.locales[code]) { state.viewing = code; renderResult(); return; }
-
-    state.busy = true;
-    $("runWorking").classList.remove("hidden");
-    $("runWorkText").textContent = "Translating into " + name + "…";
-    actReset();
-    const aT = act("Claude translates into " + name, "…");
-
-    try {
-      const tr = await askJson(translatePrompt(state.product, state.result.copy, name));
-      const t = tr.data;
-      /* The claims map travels untranslated, so the variant keeps the master's. */
-      const copy = {
-        title: t.title, bullets: t.bullets,
-        long_copy: t.long_copy, meta_description: t.meta_description,
-        keywords_used: state.result.copy.keywords_used || [],
-        claims: state.result.copy.claims || [],
-      };
-      actDone(aT, allText(copy).length.toLocaleString() + " characters", "ok");
-
-      const findings = await narrateChecks(copy, state.product.attributes, code);
-      act(findings.length ? "Finished with findings" : "Finished clean",
-        findings.length + " finding" + (findings.length === 1 ? "" : "s"),
-        findings.length ? "bad" : "ok");
-
-      state.locales[code] = {
-        copy: copy, findings: findings, checksOff: checksOff(code),
-        status: findings.length ? "FAIL" : "PASS", label: name,
-      };
-      state.viewing = code;
-      renderResult();
-      await saveDescription(code);
-      logActivity(code);
-    } catch (e) {
-      actDone(aT, "failed", "bad");
-      showError(sampleErrorCopy(e));
-    } finally {
-      state.busy = false;
-      $("runWorking").classList.add("hidden");
-    }
-  }
-
-  function sampleErrorCopy(e) {
-    const code = e && e.code ? e.code : "error";
-    if (code === "not_granted") return "You declined to let this page ask Claude. Reload the page to be asked again.";
-    if (code === "rate_limited") return "Claude is rate-limited for this view. Wait a moment before trying again.";
-    if (code === "invalid_json") return "Claude did not return usable JSON. Try again — if it keeps happening, the record or your note may be confusing the contract.";
-    if (code === "cancelled") return "Stopped.";
-    return ((e && e.message) || "The request failed.") + " (" + code + ")";
-  }
-
-  function fail(msg) { state.busy = false; $("runWorking").classList.add("hidden"); showError(msg); }
-  function showError(msg) {
-    const el = $("runError");
-    el.textContent = msg;
-    el.classList.remove("hidden");
-    $("runTitle").textContent = "Could not finish";
-  }
-
-  /* =========================================================== render */
-  function view() { return state.viewing === "en" ? state.result : state.locales[state.viewing]; }
-
-  function renderResult() {
-    const v = view();
-    if (!v) return;
-    const limits = CFG.limits || {};
-
-    $("runResult").classList.remove("hidden");
-    $("runTitle").textContent = state.viewing === "en"
-      ? "English master"
-      : (v.label || state.viewing) + " — draft pending native review";
-
-    const badge = $("verdictBadge");
-    badge.textContent = v.status;
-    badge.className = "badge " + (v.status === "PASS" ? "pass" : "fail");
-    $("verdictMeta").textContent = [
-      v.findings.length ? v.findings.length + " finding" + (v.findings.length === 1 ? "" : "s") : "every check that could run, passed",
-      tierLabel(state.result.tier || "complex", state.result.applied),
-      (state.result.copy.claims || []).length + " claims",
-    ].join("  ·  ");
-
-    renderLocaleBar();
-
-    const off = state.viewing === "en" ? [] : (v.checksOff || []);
-    const offEl = $("checksOffNote");
-    if (off.length) {
-      offEl.classList.remove("hidden");
-      offEl.textContent = "";
-      const b = document.createElement("b"); b.textContent = "Not checked in this language";
-      const p = document.createElement("p");
-      p.textContent = off.join(" · ") + ". A pass here is narrower than a pass in English, and this variant is a draft pending native review.";
-      offEl.append(b, p);
-    } else offEl.classList.add("hidden");
-
-    const block = $("copyBlock");
-    if (RTL.has(state.viewing)) block.setAttribute("dir", "rtl"); else block.removeAttribute("dir");
-
-    const c = v.copy;
-    $("outTitle").textContent = c.title || "";
-    setCount($("cntTitle"), (c.title || "").length, limits.title);
-
-    const ul = $("outBullets");
-    ul.textContent = "";
-    for (const b of (c.bullets || [])) {
-      const li = document.createElement("li");
-      li.textContent = b;
-      if (limits.bullet && String(b).length > limits.bullet) {
-        const s = document.createElement("span");
-        s.className = "count over";
-        s.textContent = String(b).length + "/" + limits.bullet;
-        li.append(" ", s);
-      }
-      ul.append(li);
-    }
-
-    $("outLong").textContent = c.long_copy || "";
-    $("outMeta").textContent = c.meta_description || "";
-    setCount($("cntMeta"), (c.meta_description || "").length, limits.meta_description);
-
-    const fl = $("outFindings");
-    fl.textContent = "";
-    for (const f of v.findings) {
-      const li = document.createElement("li");
-      if (f.check === "over_limit") li.className = "warn";
-      const a = document.createElement("span"); a.className = "c"; a.textContent = f.check;
-      const b = document.createElement("span"); b.textContent = f.detail;
-      li.append(a, b);
-      fl.append(li);
-    }
-    $("noFindings").classList.toggle("hidden", v.findings.length > 0);
-
-    fillClaims($("outClaims"), c.claims || []);
-    fillRecord($("outRecord"), state.product.attributes);
-
-    $("dlJson").classList.toggle("hidden", !state.caps.downloads);
-    $("dlMd").classList.toggle("hidden", !state.caps.downloads);
+    return {
+      step: mk,
+      done: fin,
+      stream(text) {
+        streamWrap.classList.remove("hidden");
+        /* Only the tail: the whole reply is the description, and it is about to be shown
+           properly a few centimetres below. */
+        pre.textContent = text.length > 1200 ? "…" + text.slice(-1200) : text;
+        pre.scrollTop = pre.scrollHeight;
+        const dt = steps.firstElementChild && steps.children[1] && steps.children[1].querySelector(".dt");
+        if (dt) dt.textContent = text.length.toLocaleString() + " characters so far";
+      },
+      endStream() { streamWrap.open = false; },
+      async checks(copy, attrs, locale) {
+        const res = runChecks(copy, attrs, locale);
+        for (const s of res.steps) {
+          const li = mk(s.name, "…");
+          await tick();
+          fin(li, s.detail, s.off ? "off" : s.bad ? "bad" : "ok");
+        }
+        return res.findings;
+      },
+      error(msg) {
+        pulse.classList.add("hidden");
+        label.textContent = "Could not finish";
+        const e = document.createElement("div");
+        e.className = "offnote";
+        e.style.borderLeftColor = "var(--fail)";
+        e.style.background = "var(--fail-soft)";
+        e.textContent = msg;
+        host.append(e);
+      },
+      collapse(summary) {
+        pulse.classList.add("hidden");
+        label.textContent = summary;
+        head.classList.add("finished");
+        steps.classList.add("quiet");
+      },
+    };
   }
 
   /** One saved description, read-only, inside a product row. */
@@ -1163,58 +1024,7 @@
     }
   }
 
-  function setCount(el, len, limit) {
-    if (!limit) { el.textContent = ""; return; }
-    el.textContent = len + " / " + limit + " characters";
-    el.className = "count" + (len > limit ? " over" : "");
-  }
 
-  function renderLocaleBar() {
-    const bar = $("locBar");
-    bar.textContent = "";
-    if (!state.result) return;
-
-    const mk = (code, label, unchecked) => {
-      const b = document.createElement("button");
-      b.className = "locbtn" + (unchecked ? " unchecked" : "");
-      b.setAttribute("aria-pressed", String(state.viewing === code));
-      b.textContent = label + (state.locales[code] ? " ✓" : "");
-      if (unchecked) b.title = "No regulated-term list for this language — that check runs off.";
-      b.addEventListener("click", () => {
-        if (code === "en") { state.viewing = "en"; renderResult(); }
-        else translateTo(label);
-      });
-      return b;
-    };
-
-    bar.append(mk("en", "English", false));
-    for (const code of CHECKED_LOCALES) bar.append(mk(code, LANG_NAMES[code] || code, false));
-    /* Two common asks the config has no term list for, offered dashed so the gap is visible. */
-    for (const code of ["ar", "pt"]) {
-      if (!CHECKED_LOCALES.includes(code)) bar.append(mk(code, LANG_NAMES[code] || code, true));
-    }
-    for (const code of Object.keys(state.locales)) {
-      if (code === "en" || CHECKED_LOCALES.includes(code) || code === "ar" || code === "pt") continue;
-      bar.append(mk(code, state.locales[code].label, !((CFG.regulated_terms_by_locale || {})[code])));
-    }
-
-    /* Any language, typed. One the config does not know still translates — the page just
-       says which checks could not run rather than implying a clean pass. */
-    const wrap = document.createElement("span");
-    wrap.className = "langinput";
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = "any language…";
-    input.setAttribute("aria-label", "Translate into another language");
-    const go = document.createElement("button");
-    go.className = "locbtn";
-    go.textContent = "Translate";
-    const fire = () => { const val = input.value.trim(); if (val) { input.value = ""; translateTo(val); } };
-    go.addEventListener("click", fire);
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fire(); } });
-    wrap.append(input, go);
-    bar.append(wrap);
-  }
 
   /* =========================================================== catalogue */
   function mergedProducts() {
@@ -1294,116 +1104,183 @@
     }
   }
 
+  /**
+   * One product row, opened. Reading order matches the order someone works in: what the
+   * record says, what has been written from it, then the controls that change either.
+   * A run renders in the work area between them — nothing navigates away.
+   */
   function buildProdBody(body, p) {
+    /* --- the record ------------------------------------------------------- */
+    const recHead = document.createElement("div");
+    recHead.className = "eyebrow";
+    recHead.textContent = "Record · " + Object.keys(p.attributes).length + " attributes";
     const sc = document.createElement("div");
     sc.className = "scroll";
-    const tbl = document.createElement("table");
-    tbl.className = "rec";
+    const tbl = document.createElement("table"); tbl.className = "rec";
     const tb = document.createElement("tbody");
     fillRecord(tb, p.attributes);
-    tbl.append(tb); sc.append(tbl); body.append(sc);
+    tbl.append(tb); sc.append(tbl);
+    body.append(recHead, sc);
 
-    /* Whatever has already been written for this product, in every language. */
-    const saved = document.createElement("div");
-    saved.className = "saved";
-    const savedHead = document.createElement("div");
-    savedHead.className = "eyebrow";
-    savedHead.textContent = "Description";
-    saved.append(savedHead);
+    /* --- what has been written from it ------------------------------------ */
+    const descSec = document.createElement("div");
+    descSec.className = "saved";
+    body.append(descSec);
 
-    const bar = document.createElement("div");
-    bar.className = "savedbar";
-    const pane = document.createElement("div");
-    const descs = p.descriptions || {};
-    const codes = Object.keys(descs);
+    /* --- where a run happens ---------------------------------------------- */
+    const work = document.createElement("div");
+    work.className = "work hidden";
+    body.append(work);
 
-    if (!codes.length) {
-      const none = document.createElement("span");
-      none.className = "none";
-      none.textContent = "Not written yet.";
-      bar.append(none);
-    } else {
-      let showing = codes.includes("en") ? "en" : codes[0];
-      const drawSaved = () => {
+    /* --- controls ---------------------------------------------------------- */
+    const controls = document.createElement("div");
+    controls.className = "controls";
+    body.append(controls);
+
+    const ctx = {
+      product: p,
+      work: work,
+      setBusy(on) {
+        for (const el of controls.querySelectorAll("button, input")) el.disabled = on || !state.caps.sample;
+        for (const el of descSec.querySelectorAll("button")) el.disabled = on;
+      },
+      refresh(showCode) {
+        const fresh = state.products.find((x) => x.sku === p.sku);
+        if (fresh) p.descriptions = fresh.descriptions || {};
+        drawDesc(showCode);
+        drawControls();
+      },
+    };
+
+    /* ---- the descriptions, with a tab per language ---- */
+    function drawDesc(showCode) {
+      descSec.textContent = "";
+      const descs = p.descriptions || {};
+      const codes = Object.keys(descs);
+
+      const head = document.createElement("div");
+      head.className = "eyebrow";
+      head.textContent = "Description";
+      descSec.append(head);
+
+      if (!codes.length) {
+        const none = document.createElement("p");
+        none.className = "lede";
+        none.style.marginTop = "6px";
+        none.textContent = "Not written yet.";
+        descSec.append(none);
+        return;
+      }
+
+      let showing = showCode && descs[showCode] ? showCode : (codes.includes("en") ? "en" : codes[0]);
+      const bar = document.createElement("div");
+      bar.className = "savedbar";
+      const pane = document.createElement("div");
+
+      const draw = () => {
         for (const b of bar.querySelectorAll(".hloc")) b.setAttribute("aria-pressed", String(b.dataset.code === showing));
         pane.textContent = "";
         renderSavedCopy(pane, descs[showing], showing, p.attributes);
+        if (state.caps.downloads) {
+          const row = document.createElement("div");
+          row.className = "actions";
+          const md = document.createElement("button");
+          md.className = "btn sm"; md.textContent = "Download Markdown";
+          md.addEventListener("click", () => offer(
+            p.sku + (showing === "en" ? "" : "-" + showing) + ".md",
+            asMarkdown(p, showing, descs[showing])));
+          const js = document.createElement("button");
+          js.className = "btn sm"; js.textContent = "Download JSON";
+          js.addEventListener("click", () => offer(
+            p.sku + (showing === "en" ? "" : "-" + showing) + ".json",
+            JSON.stringify({
+              sku: p.sku, category: p.category, locale: showing,
+              attributes: p.attributes, copy: descs[showing].copy,
+              status: descs[showing].status, findings: descs[showing].findings,
+              checks_off: descs[showing].checksOff || [],
+            }, null, 2)));
+          row.append(md, js);
+          pane.append(row);
+        }
       };
+
       for (const code of codes) {
         const b = document.createElement("button");
         b.className = "hloc";
         b.dataset.code = code;
         b.textContent = (descs[code].label || code) + (descs[code].status === "PASS" ? "" : " ✕");
-        b.addEventListener("click", () => { showing = code; drawSaved(); });
+        b.addEventListener("click", () => { showing = code; draw(); });
         bar.append(b);
       }
-      saved.append(bar, pane);
-      drawSaved();
-      body.append(saved);
+      descSec.append(bar, pane);
+      draw();
     }
-    if (!codes.length) { saved.append(bar); body.append(saved); }
 
-    const act = document.createElement("div");
-    act.className = "actions";
+    /* ---- edit · delete · write · translate ---- */
+    function drawControls() {
+      controls.textContent = "";
+      const has = Object.keys(p.descriptions || {}).length > 0;
+      const hasEn = !!((p.descriptions || {}).en || {}).copy;
 
-    const edit = document.createElement("button");
-    edit.className = "btn sm";
-    edit.textContent = "Edit";
-    edit.disabled = !state.caps.db;
-    edit.addEventListener("click", () => startEdit(p));
+      const row = document.createElement("div");
+      row.className = "actions";
 
-    const del = document.createElement("button");
-    del.className = "btn sm";
-    del.textContent = "Delete";
-    const wouldLeave = mergedProducts().length - 1;
-    del.disabled = !state.caps.db || wouldLeave < MIN_CATALOGUE;
-    if (wouldLeave < MIN_CATALOGUE) del.title = "The catalogue keeps at least " + MIN_CATALOGUE + " products.";
-    del.addEventListener("click", async () => {
-      if (del.dataset.armed !== "1") {
-        del.dataset.armed = "1";
-        del.textContent = "Delete — click again";
-        setTimeout(() => { del.dataset.armed = "0"; del.textContent = "Delete"; }, 4000);
-        return;
-      }
-      del.disabled = true;
-      del.textContent = (await deleteProduct(p)) ? "Deleted" : "Could not delete";
-    });
+      const edit = document.createElement("button");
+      edit.className = "btn sm";
+      edit.textContent = "Edit record";
+      edit.disabled = !state.caps.db;
+      edit.addEventListener("click", () => startEdit(p));
 
-    const sp = document.createElement("div"); sp.className = "spacer";
-    const go = document.createElement("button");
-    go.className = "btn primary";
-    go.textContent = codes.length ? "Regenerate description" : "Get description";
-    go.disabled = !state.caps.sample;
-    if (codes.length) go.title = "Writes a fresh English master and replaces the saved one.";
-    go.addEventListener("click", () => writeFor(
-      { sku: p.sku, category: p.category, attributes: Object.assign({}, p.attributes) },
-    ));
-    act.append(edit, del, sp, go);
-    body.append(act);
+      const del = document.createElement("button");
+      del.className = "btn sm";
+      del.textContent = "Delete";
+      const wouldLeave = mergedProducts().length - 1;
+      del.disabled = !state.caps.db || wouldLeave < MIN_CATALOGUE;
+      if (wouldLeave < MIN_CATALOGUE) del.title = "The catalogue keeps at least " + MIN_CATALOGUE + " products.";
+      del.addEventListener("click", async () => {
+        if (del.dataset.armed !== "1") {
+          del.dataset.armed = "1";
+          del.textContent = "Delete — click again";
+          setTimeout(() => { del.dataset.armed = "0"; del.textContent = "Delete"; }, 4000);
+          return;
+        }
+        del.disabled = true;
+        del.textContent = (await deleteProduct(p)) ? "Deleted" : "Could not delete";
+      });
 
-    /* Translating is only offered once there is an English master to translate FROM —
-       the skill is explicit that a variant is never written from scratch. */
-    if (descs.en && descs.en.copy) {
+      const sp = document.createElement("div"); sp.className = "spacer";
+      const go = document.createElement("button");
+      go.className = "btn primary";
+      go.textContent = has ? "Regenerate description" : "Get description";
+      go.disabled = !state.caps.sample;
+      if (has) go.title = "Writes a fresh English master and replaces the saved one.";
+      go.addEventListener("click", () => runFor(ctx, "write"));
+
+      row.append(edit, del, sp, go);
+      controls.append(row);
+
+      /* Translating is offered only once there is a master to translate FROM. */
+      if (!hasEn) return;
+
       const tr = document.createElement("div");
-      tr.className = "saved";
-      const th = document.createElement("div");
+      tr.className = "translate";
+      const th = document.createElement("span");
       th.className = "eyebrow";
-      th.textContent = "Translate";
-      const bar2 = document.createElement("div");
-      bar2.className = "locbar";
-      bar2.style.marginTop = "10px";
+      th.textContent = "Translate into";
+      const bar = document.createElement("span");
+      bar.className = "locbar";
 
       const mk = (code, label, unchecked) => {
         const b = document.createElement("button");
         b.className = "locbtn" + (unchecked ? " unchecked" : "");
-        b.textContent = label + (descs[code] ? " ✓" : "");
+        b.textContent = label + ((p.descriptions || {})[code] ? " ✓" : "");
         if (unchecked) b.title = "No regulated-term list for this language — that check runs off.";
         b.disabled = !state.caps.sample;
-        b.addEventListener("click", () => translateProduct(p, label));
+        b.addEventListener("click", () => runFor(ctx, "translate", label));
         return b;
       };
-      for (const code of CHECKED_LOCALES) bar2.append(mk(code, LANG_NAMES[code] || code, false));
-      if (!CHECKED_LOCALES.includes("ar")) bar2.append(mk("ar", LANG_NAMES.ar, true));
+      for (const code of CHECKED_LOCALES) bar.append(mk(code, LANG_NAMES[code] || code, false));
+      if (!CHECKED_LOCALES.includes("ar")) bar.append(mk("ar", LANG_NAMES.ar, true));
 
       const wrap = document.createElement("span");
       wrap.className = "langinput";
@@ -1411,19 +1288,23 @@
       input.type = "text";
       input.placeholder = "any language…";
       input.setAttribute("aria-label", "Translate into another language");
+      input.disabled = !state.caps.sample;
       const gob = document.createElement("button");
       gob.className = "locbtn";
-      gob.textContent = "Translate";
+      gob.textContent = "Go";
       gob.disabled = !state.caps.sample;
-      const fire = () => { const v = input.value.trim(); if (v) { input.value = ""; translateProduct(p, v); } };
+      const fire = () => { const v = input.value.trim(); if (v) { input.value = ""; runFor(ctx, "translate", v); } };
       gob.addEventListener("click", fire);
       input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fire(); } });
       wrap.append(input, gob);
-      bar2.append(wrap);
+      bar.append(wrap);
 
-      tr.append(th, bar2);
-      body.append(tr);
+      tr.append(th, bar);
+      controls.append(tr);
     }
+
+    drawDesc();
+    drawControls();
   }
 
   /* =========================================================== products in db
@@ -1798,44 +1679,28 @@
     return sku.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
   }
 
-  async function saveDescription(code) {
+  async function saveDescription(product, code, entry) {
     const db = state.caps.db;
-    if (!db || !state.product || !state.result) return;
-    const v = code === "en" ? state.result : state.locales[code];
-    if (!v) return;
-
-    const entry = {
-      copy: v.copy,
-      status: v.status,
-      findings: v.findings,
-      checksOff: v.checksOff || [],
-      label: v.label || "English",
-      tier: state.result.tier,
-      applied: state.result.applied || state.result.tier,
-      at: new Date().toISOString(),
-    };
-
-    const id = descKey(state.product.sku);
-    const existing = state.products.find((x) => x.sku === state.product.sku) || {};
-    const descriptions = Object.assign({}, existing.descriptions || {});
-    descriptions[code] = entry;
+    if (!db) return;
+    const id = descKey(product.sku);
+    const existing = state.products.find((x) => x.sku === product.sku) || {};
+    const descriptions = Object.assign({}, existing.descriptions || {}, { [code]: entry });
 
     try {
       await db.doc("products/" + id).set({
-        sku: state.product.sku,
-        category: state.product.category,
-        attributes: state.product.attributes,
+        sku: product.sku,
+        category: product.category,
+        attributes: product.attributes,
         invented: !!existing.invented,
         descriptions: descriptions,
         at: existing.at || new Date().toISOString(),
       });
-      state.products = state.products.filter((x) => x.sku !== state.product.sku);
+      state.products = state.products.filter((x) => x.sku !== product.sku);
       state.products.unshift({
-        sku: state.product.sku, category: state.product.category,
-        attributes: state.product.attributes, invented: !!existing.invented,
+        sku: product.sku, category: product.category,
+        attributes: product.attributes, invented: !!existing.invented,
         descriptions: descriptions,
       });
-      renderCatalogue();
     } catch { /* the copy on screen is still the deliverable */ }
   }
 
@@ -1855,30 +1720,27 @@
    * product where the next person will look for it; this is only a record of what you did
    * and when, so it stays small and stays local.
    */
-  function logActivity(code) {
-    if (!state.product || !state.result) return;
-    const v = code === "en" ? state.result : state.locales[code];
-    if (!v) return;
+  function logActivity(product, code, entry) {
     state.history.unshift({
-      at: new Date().toISOString(),
-      sku: state.product.sku,
-      category: state.product.category,
-      attrs: Object.keys(state.product.attributes).length,
-      language: code === "en" ? "English" : (v.label || code),
+      at: entry.at,
+      sku: product.sku,
+      category: product.category,
+      attrs: Object.keys(product.attributes).length,
+      language: entry.label || (code === "en" ? "English" : code),
       code: code,
-      status: v.status,
-      findings: (v.findings || []).length,
-      claims: (state.result.copy.claims || []).length,
-      tier: state.result.tier,
-      applied: state.result.applied || state.result.tier,
+      status: entry.status,
+      findings: (entry.findings || []).length,
+      claims: (entry.copy.claims || []).length,
+      tier: entry.tier,
+      applied: entry.applied,
       id: state.runId + ":" + code,
-      /* The record AS IT WAS. The product can be edited afterwards, and then the copy
-         no longer matches what is on the row — this is the only place that says what it
-         was written from. */
-      snapshot: Object.assign({}, state.product.attributes),
-      copy: v.copy,
-      allFindings: v.findings || [],
-      checksOff: v.checksOff || [],
+      /* The record AS IT WAS. The product can be edited afterwards, and then the copy no
+         longer matches the row it sits on — this is the only place that still says what
+         it was written from. */
+      snapshot: Object.assign({}, product.attributes),
+      copy: entry.copy,
+      allFindings: entry.findings || [],
+      checksOff: entry.checksOff || [],
     });
     state.history = state.history.slice(0, HISTORY_MAX);
     try { localStorage.setItem("do04.history", JSON.stringify(state.history)); }
@@ -2007,9 +1869,8 @@
     catch (e) { if (e && e.code !== "cancelled" && e.code !== "not_granted") showError("The file could not be saved: " + (e.message || e.code)); }
   }
 
-  function asMarkdown() {
-    const v = view();
-    const c = v.copy;
+  function asMarkdown(product, code, d) {
+    const c = d.copy;
     return [
       "# " + (c.title || ""),
       "",
@@ -2028,12 +1889,12 @@
       "",
       "## What did not run",
       "",
-      state.viewing === "en"
+      code === "en"
         ? "Every check applies to the English master."
-        : (v.checksOff || []).map((x) => "- " + x).join("\n") + "\n\nThis variant is a draft pending native review.",
+        : (d.checksOff || []).map((x) => "- " + x).join("\n") + "\n\nThis variant is a draft pending native review.",
       "",
-      v.findings.length
-        ? "## Findings\n\n" + v.findings.map((f) => "- **" + f.check + "** — " + f.detail).join("\n")
+      (d.findings || []).length
+        ? "## Findings\n\n" + d.findings.map((f) => "- **" + f.check + "** — " + f.detail).join("\n")
         : "No findings.",
     ].join("\n");
   }
@@ -2130,23 +1991,6 @@
     }, 900);
   });
 
-  $("againBtn").addEventListener("click", () => {
-    $("paneRun").classList.add("hidden");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-
-  $("dlJson").addEventListener("click", () => {
-    const v = view();
-    offer(state.product.sku + (state.viewing === "en" ? "" : "-" + state.viewing) + ".json",
-      JSON.stringify({
-        sku: state.product.sku, category: state.product.category, locale: state.viewing,
-        attributes: state.product.attributes,
-        copy: v.copy, status: v.status, findings: v.findings, checks_off: v.checksOff || [],
-      }, null, 2));
-  });
-  $("dlMd").addEventListener("click", () => {
-    offer(state.product.sku + (state.viewing === "en" ? "" : "-" + state.viewing) + ".md", asMarkdown());
-  });
 
   $("histPanel").addEventListener("toggle", () => { if ($("histPanel").open) renderHistory(); });
   $("snapClose").addEventListener("click", closeSnapshot);

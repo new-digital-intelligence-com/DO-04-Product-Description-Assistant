@@ -147,6 +147,24 @@ a variant is a translation of an approved master and is never written from scrat
 target language. Translating from a product row reuses the stored master rather than
 regenerating it — the same copy the merchandiser approved.
 
+## Everything happens in the product row
+
+There is no separate run panel. A product opens to three things, in the order someone
+actually works in them:
+
+```
+Record · 10 attributes          the table
+Description                     tabs per language, the copy, downloads
+                                ── a run renders here ──
+Edit record · Delete            Regenerate description
+Translate into  German French Spanish Italian Dutch Arabic [any language…]
+```
+
+Click **Get description**, **Regenerate** or a language, and the work appears between the
+description and the controls — steps, and Claude's reply streaming into a collapsible box.
+When it finishes, the description above refreshes in place and the work area collapses to one
+line. Nothing scrolls away, nothing opens elsewhere.
+
 ## The wait is narrated
 
 The model call is one opaque step, so the page shows it as one. Everything after it is real
